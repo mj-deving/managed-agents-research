@@ -1,0 +1,120 @@
+{
+  "name": "Research Agent — n8n Hybrid (Demo 3)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "research",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "research-webhook"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8000/research",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ topic: $json.body.topic }) }}",
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "id": "call-research-api",
+      "name": "Call Research Agent API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "operation": "formatReport",
+        "jsCode": "const data = $input.first().json;\n\nconst subject = `Research Report: ${data.topic}`;\nconst body = `# Research Report\\n\\n**Topic:** ${data.topic}\\n**Words:** ${data.words}\\n**Cost:** $${data.cost_usd}\\n**Time:** ${data.elapsed_seconds}s\\n\\n---\\n\\n${data.report}`;\n\nreturn [{ json: { subject, body, topic: data.topic, words: data.words, cost: data.cost_usd } }];",
+        "mode": "runOnceForEachItem"
+      },
+      "id": "format-report",
+      "name": "Format Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $env.EMAIL_FROM || 'research-agent@example.com' }}",
+        "toEmail": "={{ $env.EMAIL_TO || 'user@example.com' }}",
+        "subject": "={{ $json.subject }}",
+        "emailType": "text",
+        "message": "={{ $json.body }}",
+        "options": {}
+      },
+      "id": "send-email",
+      "name": "Send Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [900, 300],
+      "notes": "Configure SMTP credentials in n8n. Set EMAIL_FROM and EMAIL_TO env vars or update node directly."
+    },
+    {
+      "parameters": {},
+      "id": "respond-webhook",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [900, 500]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Call Research Agent API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Research Agent API": {
+      "main": [
+        [
+          {
+            "node": "Format Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Report": {
+      "main": [
+        [
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionTimeout": 600
+  },
+  "tags": [
+    {
+      "name": "managed-agent-poc"
+    }
+  ]
+}
