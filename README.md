@@ -206,10 +206,15 @@ python3 n8n_hybrid_server.py --port 9000  # Custom port
 # Health check
 curl http://localhost:8000/health
 
-# Trigger research (takes ~3 minutes)
+# Trigger research — basic mode (default, ~3 minutes)
 curl -X POST http://localhost:8000/research \
      -H "Content-Type: application/json" \
      -d '{"topic": "AI Coding Agents 2026"}'
+
+# Trigger research — plan-reflect mode (~2 minutes)
+curl -X POST http://localhost:8000/research \
+     -H "Content-Type: application/json" \
+     -d '{"topic": "AI Coding Agents 2026", "mode": "plan-reflect"}'
 ```
 
 ### API Endpoints
@@ -220,13 +225,19 @@ Triggers autonomous research on a topic.
 
 **Request:**
 ```json
-{"topic": "State of AI Coding Agents 2026"}
+{"topic": "State of AI Coding Agents 2026", "mode": "basic"}
 ```
+
+| Field | Required | Default | Description |
+|-------|----------|---------|-------------|
+| `topic` | yes | — | The topic to research |
+| `mode` | no | `"basic"` | `"basic"` (Demo 1 prompt) or `"plan-reflect"` (Demo 4 prompt with plan + reflection) |
 
 **Response (from actual test run):**
 ```json
 {
   "topic": "n8n vs Make.com vs Zapier 2026",
+  "mode": "basic",
   "report": "# n8n vs Make.com vs Zapier: 2026 Automation Platform Comparison\n...",
   "words": 1956,
   "turns": 18,
@@ -434,10 +445,21 @@ Outputs: comparison table to stdout + two report files (`compare-basic-*.md`, `c
 ## Shared Utilities
 
 `utils.py` contains shared code used across all demos:
+
+**Functions:**
 - `slugify()` — filesystem-safe filename generation
 - `strip_preamble()` — removes non-Markdown artifacts from agent output
-- `BASIC_SYSTEM_PROMPT` — system prompt for Demo 1/3
-- `PLAN_REFLECT_SYSTEM_PROMPT` — system prompt for Demo 4/5
+- `check_report_structure()` — validates plan-reflect output sections
+
+**System Prompts:**
+- `BASIC_SYSTEM_PROMPT` — system prompt for Demo 1/3 (basic mode)
+- `PLAN_REFLECT_SYSTEM_PROMPT` — system prompt for Demo 3 (plan-reflect mode)/4/5
+- `RESEARCHER_PROMPT` — sub-agent prompt for Demo 2/5
+
+**Configuration Constants:**
+- `DEFAULT_MODEL` — `claude-sonnet-4-6` (single place to change model)
+- `DEFAULT_TOOLS` — `["WebSearch", "WebFetch"]`
+- `DEFAULT_PERMISSION_MODE` — `bypassPermissions`
 
 ---
 
@@ -462,11 +484,11 @@ All demos produce reports with this format:
 
 ## Key SDK Details
 
-- **`query()`** for one-shot interactions (Demo 1, Demo 3 API, Demo 4 plan+reflect)
-- **`ClaudeSDKClient`** for streaming/multi-agent (Demo 2)
-- **`AgentDefinition`** to declare sub-agents the orchestrator can spawn
+- **`query()`** for one-shot interactions (Demo 1, Demo 3 API, Demo 4)
+- **`ClaudeSDKClient`** for streaming/multi-agent (Demo 2, Demo 5)
+- **`AgentDefinition`** to declare sub-agents the orchestrator can spawn (Demo 2, Demo 5)
 - Tool names are Claude Code built-ins: `WebSearch`, `WebFetch` (not `web_search`)
-- `permission_mode="bypassPermissions"` for unattended operation
+- All configuration centralized in `utils.py` (`DEFAULT_MODEL`, `DEFAULT_TOOLS`, `DEFAULT_PERMISSION_MODE`)
 - Authentication handled by the `claude` CLI — no `ANTHROPIC_API_KEY` export needed
 
 ## Tech Stack
@@ -503,7 +525,7 @@ managed-agent-poc/
 ├── plan_reflect_agent.py      # Demo 4: Plan & Reflect Research Agent
 ├── plan_reflect_multi_agent.py # Demo 5: Multi-Agent Plan & Reflect
 ├── run_comparison.py          # Comparison runner (Demo 1 vs Demo 4)
-├── utils.py                   # Shared utilities (slugify, prompts)
+├── utils.py                   # Shared utilities, prompts, config constants
 ├── requirements.txt           # Python dependencies
 ├── n8n_workflow.json          # Demo 3: Importable n8n workflow
 ├── output/                    # Generated reports
