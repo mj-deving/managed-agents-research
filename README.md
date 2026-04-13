@@ -11,6 +11,7 @@ Part of the [KI-Roadmap P3](../KI-Roadmap/Plans/P3-Managed-Agent-PoC-Spec.md) pr
 | 1 | `research_agent.py` | Single agent | One agent researches topic end-to-end |
 | 2 | `multi_agent_research.py` | Multi-agent | Orchestrator spawns parallel sub-agents per subtopic |
 | 3 | `n8n_hybrid_server.py` | HTTP API + n8n | Webhook triggers research, n8n formats and emails |
+| 4 | `plan_reflect_agent.py` | Plan + Reflect | Structured planning, sequential execution, self-critique |
 
 ## Prerequisites
 
@@ -253,6 +254,126 @@ Returns `{"status": "ok", "service": "research-agent"}`.
 
 ---
 
+## Demo 4: Plan & Reflect Research Agent
+
+Single agent with structured Plan-and-Execute + Reflection patterns. Instead of "research this topic" as a single prompt, the agent first creates a research plan, executes it step-by-step with per-step evaluation, then self-critiques the result before finalizing.
+
+**Inspired by:** Plan-and-Execute and Reflection patterns from the LangGraph ecosystem.
+
+### Architecture
+
+```
+[CLI: topic string]
+        |
+        v
++-- claude-agent-sdk (query) ----------------------------------+
+|                                                               |
+|  Model: claude-sonnet-4-6                                     |
+|  Tools: WebSearch, WebFetch                                   |
+|                                                               |
+|  PHASE 1 — PLAN                                               |
+|  ├── Analyze topic                                            |
+|  └── Create 3-5 research steps with specific questions        |
+|                                                               |
+|  PHASE 2 — EXECUTE                                            |
+|  ├── Step 1: Search → Evaluate → Record findings              |
+|  ├── Step 2: Search → Evaluate → Record findings              |
+|  ├── ...                                                      |
+|  └── Synthesize all findings into structured report           |
+|                                                               |
+|  PHASE 3 — REFLECT                                            |
+|  ├── Self-critique: coverage, source quality, contradictions  |
+|  ├── If "Needs Improvement": targeted follow-up (max 1 iter)  |
+|  └── Output reflection notes + meta-info                      |
+|                                                               |
++---------------------------------------------------------------+
+        |
+        v
+[output/plan-reflect-{topic-slug}.md]
+  Contains: Research Plan + Report + Reflection Notes + Meta
+```
+
+### Usage
+
+```bash
+python3 plan_reflect_agent.py "State of AI Coding Agents 2026"
+python3 plan_reflect_agent.py "RAG Architekturen 2026" -o reports/
+```
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `topic` (positional) | *required* | The topic to research |
+| `-o`, `--output-dir` | `output/` | Directory to save the output |
+
+### Output Structure
+
+Unlike Demo 1 which outputs only the report, Demo 4 outputs a complete research artifact:
+
+1. **Research Plan** — Table of planned steps with questions and target sources
+2. **Report** — Executive Summary, Key Findings, Sources, Conclusions (same structure as Demo 1)
+3. **Reflection Notes** — Self-critique: plan coverage, source quality, contradictions, overall assessment
+4. **Meta** — Step count, web search count, whether reflection triggered a correction
+
+### Example Output (Plan + Reflection sections)
+
+```markdown
+## Research Plan
+
+| Step | Research Question | Target Source Type |
+|------|------------------|--------------------|
+| 1 | What are the leading AI coding agents in 2026? | News, official docs |
+| 2 | How do they compare on code generation quality? | Benchmarks, papers |
+| 3 | What enterprise adoption patterns are emerging? | Industry reports |
+| 4 | What are the key limitations and risks? | Expert analyses |
+
+## Report
+[... standard report content ...]
+
+## Reflection Notes
+
+1. **Plan Coverage**: All 4 steps adequately addressed. Step 3 (enterprise adoption)
+   had fewer primary sources than ideal.
+2. **Source Quality**: 12 sources, mostly authoritative. 2 blog posts are weaker but
+   corroborated by other sources.
+3. **Contradictions**: Benchmark results vary by provider — noted in findings.
+4. **Overall Assessment**: Adequate
+
+## Meta
+
+- **Research steps planned**: 4
+- **Research steps completed**: 4
+- **Total web searches performed**: 11
+- **Reflection triggered correction**: No
+- **Correction details**: N/A
+```
+
+### Verified Test Results
+
+All 5 test topics run on 2026-04-13:
+
+| # | Topic | Words | Turns | Cost | Correction |
+|---|-------|-------|-------|------|------------|
+| 1 | State of AI Coding Agents 2026 | 2,338 | 25 | $0.60 | No |
+| 2 | n8n vs Make.com vs Zapier 2026 | 2,145 | 18 | $0.50 | No |
+| 3 | KI-Telefonie im DACH-Mittelstand | 2,176 | 32 | $0.82 | No |
+| 4 | Claude Managed Agents vs LangChain | 2,588 | 30 | $0.53 | No |
+| 5 | RAG Architekturen 2026 | 1,823 | 20 | $0.57 | No |
+
+**Average**: 2,214 words, 25 turns, $0.60 per run. 100% structure compliance (Plan + Report + Reflection + Meta present in all runs).
+
+### Key Differences from Demo 1
+
+| Aspect | Demo 1 (Basic) | Demo 4 (Plan + Reflect) |
+|--------|----------------|-------------------------|
+| Approach | "Research this topic" one-shot | Structured plan → sequential execution → self-critique |
+| Planning | Implicit (agent decides internally) | Explicit plan output before any research |
+| Evaluation | None — agent decides when done | Per-step sufficiency check during execution |
+| Self-critique | None | Reflection phase with optional correction |
+| Output | Report only | Plan + Report + Reflection + Meta |
+| Max turns | 30 | 40 |
+
+---
+
 ## Report Structure
 
 All demos produce reports with this format:
@@ -266,15 +387,15 @@ All demos produce reports with this format:
 
 | # | Topic | Expected Output | Tested |
 |---|-------|-----------------|--------|
-| 1 | "State of AI Coding Agents 2026" | ~2000 words, 10+ sources | Demo 1: 2,463 words, 14 sources |
-| 2 | "n8n vs Make.com vs Zapier 2026" | Comparison table + analysis | Demo 3: 1,956 words, 16 sources |
-| 3 | "KI-Telefonie im DACH-Mittelstand" | Market analysis, providers, ROI | |
-| 4 | "Claude Managed Agents vs LangChain" | Technical comparison | Demo 2: 2,178 words, 5 agents |
-| 5 | "RAG Architekturen 2026: Naive vs Graph vs Wiki" | Architecture guide | |
+| 1 | "State of AI Coding Agents 2026" | ~2000 words, 10+ sources | Demo 1: 2,463w / Demo 4: 2,338w |
+| 2 | "n8n vs Make.com vs Zapier 2026" | Comparison table + analysis | Demo 3: 1,956w / Demo 4: 2,145w |
+| 3 | "KI-Telefonie im DACH-Mittelstand" | Market analysis, providers, ROI | Demo 4: 2,176w |
+| 4 | "Claude Managed Agents vs LangChain" | Technical comparison | Demo 2: 2,178w / Demo 4: 2,588w |
+| 5 | "RAG Architekturen 2026: Naive vs Graph vs Wiki" | Architecture guide | Demo 4: 1,823w |
 
 ## Key SDK Details
 
-- **`query()`** for one-shot interactions (Demo 1, Demo 3 API)
+- **`query()`** for one-shot interactions (Demo 1, Demo 3 API, Demo 4 plan+reflect)
 - **`ClaudeSDKClient`** for streaming/multi-agent (Demo 2)
 - **`AgentDefinition`** to declare sub-agents the orchestrator can spawn
 - Tool names are Claude Code built-ins: `WebSearch`, `WebFetch` (not `web_search`)
@@ -296,13 +417,14 @@ All demos produce reports with this format:
 
 ## Cost (Verified)
 
-All costs from actual test runs on 2026-04-10:
+All costs from actual test runs:
 
-| Demo | Cost | Words | Runtime | Topic Tested |
-|------|------|-------|---------|--------------|
-| Demo 1 | $0.81 | 2,463 | ~3 min | State of AI Coding Agents 2026 |
-| Demo 2 | $1.70 | 2,178 | ~7 min | Claude Managed Agents vs LangChain |
-| Demo 3 | $0.42 | 1,956 | 164s | n8n vs Make.com vs Zapier 2026 |
+| Demo | Cost | Words | Runtime | Topic Tested | Date |
+|------|------|-------|---------|--------------|------|
+| Demo 1 | $0.81 | 2,463 | ~3 min | State of AI Coding Agents 2026 | 2026-04-10 |
+| Demo 2 | $1.70 | 2,178 | ~7 min | Claude Managed Agents vs LangChain | 2026-04-10 |
+| Demo 3 | $0.42 | 1,956 | 164s | n8n vs Make.com vs Zapier 2026 | 2026-04-10 |
+| Demo 4 | $0.60 avg | 2,214 avg | ~2 min | 5 topics (see Demo 4 results) | 2026-04-13 |
 
 ## Project Structure
 
@@ -311,6 +433,7 @@ managed-agent-poc/
 ├── research_agent.py          # Demo 1: Simple Research Agent
 ├── multi_agent_research.py    # Demo 2: Multi-Agent Research
 ├── n8n_hybrid_server.py       # Demo 3: n8n Hybrid Server
+├── plan_reflect_agent.py      # Demo 4: Plan & Reflect Research Agent
 ├── n8n_workflow.json          # Demo 3: Importable n8n workflow
 ├── output/                    # Generated reports
 │   ├── state-of-ai-coding-agents-2026.md
