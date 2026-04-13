@@ -428,6 +428,28 @@ python3 plan_reflect_multi_agent.py "State of AI Coding Agents 2026"
 python3 plan_reflect_multi_agent.py "RAG Architekturen 2026" -o reports/
 ```
 
+### Verified Test Results
+
+| Metric | Value |
+|--------|-------|
+| Report length | 2,467 words |
+| Sub-agents spawned | 5 (parallel) |
+| Total tokens | ~53,000 across all agents |
+| Cost | $1.97 |
+| Runtime | ~5 minutes |
+| Structure (Plan/Reflection/Meta) | ✓/✓/✓ |
+
+Tested with topic "State of AI Coding Agents 2026" on 2026-04-13.
+
+**Sub-agent breakdown from test run:**
+| Sub-agent | Tokens |
+|-----------|--------|
+| AI coding agent products 2026 | 8,631 |
+| Capabilities/benchmarks 2026 | 9,904 |
+| Enterprise adoption 2026 | 10,261 |
+| Market landscape 2026 | 11,867 |
+| Limitations and challenges 2026 | 12,312 |
+
 ---
 
 ## Comparison Runner
@@ -439,6 +461,22 @@ python3 run_comparison.py "State of AI Coding Agents 2026"
 ```
 
 Outputs: comparison table to stdout + two report files (`compare-basic-*.md`, `compare-plan-reflect-*.md`).
+
+### Verified Comparison Run
+
+Topic: "n8n vs Make.com vs Zapier 2026" (2026-04-13):
+
+| Metric | Demo 1 (basic) | Demo 4 (plan+reflect) |
+|--------|---------------|----------------------|
+| Words | 2,059 | 2,804 |
+| Turns | 16 | 31 |
+| Cost | $0.45 | $0.68 |
+| Runtime | 153s | 233s |
+| Has Research Plan | No | Yes |
+| Has Reflection | No | Yes |
+| Has Meta-info | No | Yes |
+
+Total comparison cost: $1.13
 
 ---
 
@@ -514,6 +552,7 @@ All costs from actual test runs:
 | Demo 2 | $1.70 | 2,178 | ~7 min | Claude Managed Agents vs LangChain | 2026-04-10 |
 | Demo 3 | $0.42 | 1,956 | 164s | n8n vs Make.com vs Zapier 2026 | 2026-04-10 |
 | Demo 4 | $0.60 avg | 2,214 avg | ~2 min | 5 topics (see Demo 4 results) | 2026-04-13 |
+| Demo 5 | $1.97 | 2,467 | ~5 min | State of AI Coding Agents 2026 | 2026-04-13 |
 
 ## Project Structure
 
