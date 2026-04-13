@@ -8,7 +8,6 @@ to specialized sub-agents, and stitches the final report.
 
 import argparse
 import asyncio
-import re
 import sys
 from pathlib import Path
 
@@ -23,6 +22,8 @@ from claude_agent_sdk import (
     TaskStartedMessage,
     TextBlock,
 )
+
+from utils import DEFAULT_MODEL, DEFAULT_PERMISSION_MODE, DEFAULT_TOOLS, RESEARCHER_PROMPT, slugify
 
 ORCHESTRATOR_PROMPT = """\
 You are a research orchestrator. When given a topic:
@@ -49,34 +50,6 @@ Rules:
 - Output ONLY the final Markdown report after all agents complete.
 """
 
-RESEARCHER_PROMPT = """\
-You are a focused research specialist. When given a subtopic:
-
-1. Use WebSearch to find 3-5 authoritative, current sources.
-2. Use WebFetch to read the most promising pages in detail.
-3. Evaluate sources for credibility and recency.
-4. Write a detailed analysis section (400-600 words) covering:
-   - Key facts and data points
-   - Current trends and developments
-   - Notable quotes or statistics
-5. End with a numbered source list with titles and URLs.
-
-Rules:
-- Every claim must be backed by a source you found.
-- Do NOT fabricate URLs.
-- Be thorough but concise.
-- Output ONLY the analysis and sources, no preamble.
-"""
-
-
-def slugify(text: str) -> str:
-    """Convert text to a filesystem-safe slug."""
-    text = text.lower().strip()
-    text = re.sub(r"[^\w\s-]", "", text)
-    text = re.sub(r"[\s_]+", "-", text)
-    return text[:80].strip("-")
-
-
 async def run_multi_agent_research(topic: str, output_dir: Path) -> None:
     """Run the multi-agent research pipeline."""
     print(f"\n{'='*60}")
@@ -85,19 +58,19 @@ async def run_multi_agent_research(topic: str, output_dir: Path) -> None:
     print(f"{'='*60}\n")
 
     options = ClaudeAgentOptions(
-        model="claude-sonnet-4-6",
+        model=DEFAULT_MODEL,
         system_prompt=ORCHESTRATOR_PROMPT,
-        allowed_tools=["WebSearch", "WebFetch", "Read"],
-        permission_mode="bypassPermissions",
+        allowed_tools=DEFAULT_TOOLS + ["Read"],
+        permission_mode=DEFAULT_PERMISSION_MODE,
         max_turns=60,
         agents={
             "researcher": AgentDefinition(
                 description="Research specialist that investigates a specific subtopic using web search",
                 prompt=RESEARCHER_PROMPT,
-                tools=["WebSearch", "WebFetch"],
+                tools=DEFAULT_TOOLS,
                 model="sonnet",
                 maxTurns=20,
-                permissionMode="bypassPermissions",
+                permissionMode=DEFAULT_PERMISSION_MODE,
             ),
         },
     )

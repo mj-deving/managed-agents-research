@@ -11,7 +11,6 @@ Output includes the research plan, final report, reflection notes, and meta-info
 
 import argparse
 import asyncio
-import re
 import sys
 from pathlib import Path
 
@@ -23,96 +22,11 @@ from claude_agent_sdk import (
     query,
 )
 
-SYSTEM_PROMPT = """\
-You are a research specialist using a structured Plan-and-Execute methodology \
-with self-reflection. Follow these three phases EXACTLY in order.
-
-━━━ PHASE 1: PLAN ━━━
-
-Before any research, create a concrete research plan.
-
-1. Analyze the topic and identify 3-5 specific research questions.
-2. For each question, note what kind of source would best answer it.
-3. Output the plan in this EXACT format:
-
-## Research Plan
-
-| Step | Research Question | Target Source Type |
-|------|------------------|--------------------|
-| 1 | [specific question] | [e.g., official docs, news, academic] |
-| 2 | [specific question] | [source type] |
-| ... | ... | ... |
-
-Do NOT start any web searches yet. Output ONLY the plan table, then proceed to Phase 2.
-
-━━━ PHASE 2: EXECUTE ━━━
-
-Work through each step from the plan SEQUENTIALLY:
-
-For each step:
-1. Use WebSearch to find sources answering that step's question.
-2. Use WebFetch to read the most promising pages in detail.
-3. Evaluate: Do I have enough quality information for this step?
-   - YES → move to next step.
-   - NO → do ONE more targeted search, then move on regardless.
-4. Record your intermediate findings mentally before moving to the next step.
-
-After ALL steps are complete, synthesize everything into a structured report:
-
-## Report
-
-- **Executive Summary** — 2-3 paragraph overview of key findings
-- **Key Findings** — One subsection per research question from the plan
-- **Sources** — Numbered list of all sources with titles and URLs
-- **Conclusions** — Synthesis, trends, implications
-
-Rules for the report:
-- Every factual claim must be backed by a source you actually found.
-- Include at least 8 sources total.
-- Write 1500-2500 words.
-- Use clear, professional language.
-- Do NOT fabricate URLs — only include sources you found via WebSearch.
-
-━━━ PHASE 3: REFLECT ━━━
-
-After writing the report, critically evaluate your own work. Output:
-
-## Reflection Notes
-
-1. **Plan Coverage**: For each step in the plan, was it adequately addressed? \
-List any gaps.
-2. **Source Quality**: Are sources authoritative and current? Flag any weak sources.
-3. **Contradictions**: Are there conflicting findings? How were they resolved?
-4. **Overall Assessment**: Rate the report (Strong / Adequate / Needs Improvement).
-
-If your assessment is "Needs Improvement":
-- Identify the 1-2 most critical gaps.
-- Do targeted follow-up research (1-3 additional searches MAX).
-- Update the relevant report sections.
-- Note what was corrected in the reflection.
-
-If "Strong" or "Adequate": proceed to meta-info without corrections.
-
-━━━ META-INFO ━━━
-
-End your ENTIRE output with this exact block:
-
-## Meta
-
-- **Research steps planned**: [number]
-- **Research steps completed**: [number]
-- **Total web searches performed**: [count your WebSearch calls]
-- **Reflection triggered correction**: [Yes/No]
-- **Correction details**: [what was fixed, or "N/A"]
-"""
-
-
-def slugify(text: str) -> str:
-    """Convert text to a filesystem-safe slug."""
-    text = text.lower().strip()
-    text = re.sub(r"[^\w\s-]", "", text)
-    text = re.sub(r"[\s_]+", "-", text)
-    return text[:80].strip("-")
+from utils import (
+    DEFAULT_MODEL, DEFAULT_PERMISSION_MODE, DEFAULT_TOOLS,
+    PLAN_REFLECT_SYSTEM_PROMPT as SYSTEM_PROMPT,
+    check_report_structure, slugify, strip_preamble,
+)
 
 
 async def run_research(topic: str, output_dir: Path) -> None:
@@ -123,10 +37,10 @@ async def run_research(topic: str, output_dir: Path) -> None:
     print(f"{'='*60}\n")
 
     options = ClaudeAgentOptions(
-        model="claude-sonnet-4-6",
+        model=DEFAULT_MODEL,
         system_prompt=SYSTEM_PROMPT,
-        allowed_tools=["WebSearch", "WebFetch"],
-        permission_mode="bypassPermissions",
+        allowed_tools=DEFAULT_TOOLS,
+        permission_mode=DEFAULT_PERMISSION_MODE,
         max_turns=40,
     )
 
@@ -153,8 +67,8 @@ async def run_research(topic: str, output_dir: Path) -> None:
 
     print("\n")
 
-    # Combine all text blocks into the final output
-    full_output = "\n".join(report_parts)
+    # Combine all text blocks and strip any preamble artifacts
+    full_output = strip_preamble("\n".join(report_parts))
 
     if not full_output.strip():
         print("ERROR: Agent returned empty output.")
@@ -166,21 +80,17 @@ async def run_research(topic: str, output_dir: Path) -> None:
     output_path = output_dir / filename
     output_path.write_text(full_output, encoding="utf-8")
 
-    # Extract meta-info for console summary
-    has_plan = "## Research Plan" in full_output
-    has_reflection = "## Reflection Notes" in full_output
-    has_meta = "## Meta" in full_output
-    correction_triggered = "Reflection triggered correction**: Yes" in full_output
+    structure = check_report_structure(full_output)
 
     print(f"Output saved to:  {output_path}")
     print(f"Report length:    {len(full_output.split())} words")
     print(f"Agent turns:      {turn_count}")
     print(f"Cost:             ${cost_usd:.4f}")
     print(f"\nStructure check:")
-    print(f"  Research Plan:  {'✓' if has_plan else '✗'}")
-    print(f"  Reflection:     {'✓' if has_reflection else '✗'}")
-    print(f"  Meta-info:      {'✓' if has_meta else '✗'}")
-    print(f"  Correction:     {'Yes' if correction_triggered else 'No'}")
+    print(f"  Research Plan:  {'✓' if structure['has_plan'] else '✗'}")
+    print(f"  Reflection:     {'✓' if structure['has_reflection'] else '✗'}")
+    print(f"  Meta-info:      {'✓' if structure['has_meta'] else '✗'}")
+    print(f"  Correction:     {'Yes' if structure['correction_triggered'] else 'No'}")
 
 
 def main() -> None:

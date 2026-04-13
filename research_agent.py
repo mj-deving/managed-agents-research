@@ -7,7 +7,6 @@ a structured Markdown report with real web sources.
 
 import argparse
 import asyncio
-import re
 import sys
 from pathlib import Path
 
@@ -19,34 +18,7 @@ from claude_agent_sdk import (
     query,
 )
 
-SYSTEM_PROMPT = """\
-You are a research specialist. When given a topic, follow this process:
-
-1. **Decompose** the topic into 3-5 specific subtopics that together cover the subject comprehensively.
-2. **Research** each subtopic using WebSearch to find current, authoritative sources. Use WebFetch to read promising pages in detail when needed.
-3. **Evaluate** sources for credibility and recency. Prefer official documentation, peer-reviewed papers, reputable news outlets, and expert analyses. Discard low-quality or outdated sources.
-4. **Write** a structured research report in clean Markdown with these sections:
-   - **Executive Summary** — 2-3 paragraph overview of key findings
-   - **Key Findings** — One subsection per subtopic with detailed analysis
-   - **Sources** — Numbered list of all sources with titles and URLs
-   - **Conclusions** — Synthesis of findings, trends, and implications
-
-Rules:
-- Every factual claim must be backed by a source from your research.
-- Include at least 8 sources total.
-- Write 1500-2500 words.
-- Use clear, professional language.
-- Do NOT fabricate or hallucinate URLs — only include sources you actually found via search.
-- Output ONLY the Markdown report, no preamble or commentary.
-"""
-
-
-def slugify(text: str) -> str:
-    """Convert text to a filesystem-safe slug."""
-    text = text.lower().strip()
-    text = re.sub(r"[^\w\s-]", "", text)
-    text = re.sub(r"[\s_]+", "-", text)
-    return text[:80].strip("-")
+from utils import BASIC_SYSTEM_PROMPT as SYSTEM_PROMPT, DEFAULT_MODEL, DEFAULT_PERMISSION_MODE, DEFAULT_TOOLS, slugify
 
 
 async def run_research(topic: str, output_dir: Path) -> None:
@@ -57,10 +29,10 @@ async def run_research(topic: str, output_dir: Path) -> None:
     print(f"{'='*60}\n")
 
     options = ClaudeAgentOptions(
-        model="claude-sonnet-4-6",
+        model=DEFAULT_MODEL,
         system_prompt=SYSTEM_PROMPT,
-        allowed_tools=["WebSearch", "WebFetch"],
-        permission_mode="bypassPermissions",
+        allowed_tools=DEFAULT_TOOLS,
+        permission_mode=DEFAULT_PERMISSION_MODE,
         max_turns=30,
     )
 

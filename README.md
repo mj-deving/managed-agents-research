@@ -1,6 +1,6 @@
 # Managed Agent PoC — Research Agent
 
-Autonomous Research Agents built with the [Claude Agent SDK](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/sdk-overview) (`claude-agent-sdk`). Three demos showing progressively more sophisticated agent patterns: single agent, multi-agent orchestration, and n8n hybrid integration.
+Autonomous Research Agents built with the [Claude Agent SDK](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/sdk-overview) (`claude-agent-sdk`). Five demos showing progressively more sophisticated agent patterns: single agent, multi-agent orchestration, n8n hybrid integration, plan-and-execute with reflection, and multi-agent plan-and-reflect.
 
 Part of the [KI-Roadmap P3](../KI-Roadmap/Plans/P3-Managed-Agent-PoC-Spec.md) project.
 
@@ -12,6 +12,8 @@ Part of the [KI-Roadmap P3](../KI-Roadmap/Plans/P3-Managed-Agent-PoC-Spec.md) pr
 | 2 | `multi_agent_research.py` | Multi-agent | Orchestrator spawns parallel sub-agents per subtopic |
 | 3 | `n8n_hybrid_server.py` | HTTP API + n8n | Webhook triggers research, n8n formats and emails |
 | 4 | `plan_reflect_agent.py` | Plan + Reflect | Structured planning, sequential execution, self-critique |
+| 5 | `plan_reflect_multi_agent.py` | Multi-Agent + Plan-Reflect | Orchestrator plans, delegates to sub-agents, reflects |
+| — | `run_comparison.py` | Comparison runner | Runs Demo 1 vs Demo 4 side-by-side on same topic |
 
 ## Prerequisites
 
@@ -30,7 +32,7 @@ python3 -m venv venv
 source venv/bin/activate
 
 # Install dependencies
-pip install claude-agent-sdk anthropic
+pip install -r requirements.txt
 ```
 
 ---
@@ -374,6 +376,71 @@ All 5 test topics run on 2026-04-13:
 
 ---
 
+## Demo 5: Multi-Agent Plan & Reflect
+
+Combines Demo 2's multi-agent orchestration with Demo 4's plan-and-execute + reflection. The orchestrator creates a research plan, delegates each step to parallel sub-agents, then synthesizes and reflects on the combined results.
+
+### Architecture
+
+```
+[CLI: topic string]
+        |
+        v
++-- ClaudeSDKClient (streaming) ----------------------------+
+|                                                            |
+|  PHASE 1 — PLAN (Orchestrator)                             |
+|  └── Create 3-5 research steps with questions              |
+|                                                            |
+|  PHASE 2 — DELEGATE                                        |
+|  ┌──────────┐ ┌──────────┐ ┌──────────┐                   |
+|  │Researcher│ │Researcher│ │Researcher│  ...               |
+|  │ Step 1   │ │ Step 2   │ │ Step 3   │                   |
+|  │WebSearch │ │WebSearch │ │WebSearch │                   |
+|  └────┬─────┘ └────┬─────┘ └────┬─────┘                   |
+|       └─────────────┼───────────┘                          |
+|                     v                                      |
+|  PHASE 3 — SYNTHESIZE + REFLECT (Orchestrator)             |
+|  ├── Stitch results into unified report                    |
+|  ├── Self-critique with optional correction                |
+|  └── Output: Plan + Report + Reflection + Meta             |
+|                                                            |
++------------------------------------------------------------+
+        |
+        v
+[output/plan-reflect-multi-{topic-slug}.md]
+```
+
+### Usage
+
+```bash
+python3 plan_reflect_multi_agent.py "State of AI Coding Agents 2026"
+python3 plan_reflect_multi_agent.py "RAG Architekturen 2026" -o reports/
+```
+
+---
+
+## Comparison Runner
+
+Runs Demo 1 (basic) and Demo 4 (plan+reflect) on the same topic sequentially and prints a side-by-side comparison table.
+
+```bash
+python3 run_comparison.py "State of AI Coding Agents 2026"
+```
+
+Outputs: comparison table to stdout + two report files (`compare-basic-*.md`, `compare-plan-reflect-*.md`).
+
+---
+
+## Shared Utilities
+
+`utils.py` contains shared code used across all demos:
+- `slugify()` — filesystem-safe filename generation
+- `strip_preamble()` — removes non-Markdown artifacts from agent output
+- `BASIC_SYSTEM_PROMPT` — system prompt for Demo 1/3
+- `PLAN_REFLECT_SYSTEM_PROMPT` — system prompt for Demo 4/5
+
+---
+
 ## Report Structure
 
 All demos produce reports with this format:
@@ -432,8 +499,12 @@ All costs from actual test runs:
 managed-agent-poc/
 ├── research_agent.py          # Demo 1: Simple Research Agent
 ├── multi_agent_research.py    # Demo 2: Multi-Agent Research
-├── n8n_hybrid_server.py       # Demo 3: n8n Hybrid Server
+├── n8n_hybrid_server.py       # Demo 3: n8n Hybrid Server (supports mode=plan-reflect)
 ├── plan_reflect_agent.py      # Demo 4: Plan & Reflect Research Agent
+├── plan_reflect_multi_agent.py # Demo 5: Multi-Agent Plan & Reflect
+├── run_comparison.py          # Comparison runner (Demo 1 vs Demo 4)
+├── utils.py                   # Shared utilities (slugify, prompts)
+├── requirements.txt           # Python dependencies
 ├── n8n_workflow.json          # Demo 3: Importable n8n workflow
 ├── output/                    # Generated reports
 │   ├── state-of-ai-coding-agents-2026.md

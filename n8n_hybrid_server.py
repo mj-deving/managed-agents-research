@@ -18,7 +18,6 @@ Test with curl:
 import argparse
 import asyncio
 import json
-import re
 import time
 
 import uvicorn
@@ -35,44 +34,28 @@ from claude_agent_sdk import (
     query,
 )
 
-SYSTEM_PROMPT = """\
-You are a research specialist. When given a topic, follow this process:
-
-1. **Decompose** the topic into 3-5 specific subtopics that together cover the subject comprehensively.
-2. **Research** each subtopic using WebSearch to find current, authoritative sources. Use WebFetch to read promising pages in detail when needed.
-3. **Evaluate** sources for credibility and recency. Prefer official documentation, peer-reviewed papers, reputable news outlets, and expert analyses.
-4. **Write** a structured research report in clean Markdown with these sections:
-   - **Executive Summary** — 2-3 paragraph overview of key findings
-   - **Key Findings** — One subsection per subtopic with detailed analysis
-   - **Sources** — Numbered list of all sources with titles and URLs
-   - **Conclusions** — Synthesis of findings, trends, and implications
-
-Rules:
-- Every factual claim must be backed by a source from your research.
-- Include at least 8 sources total.
-- Write 1500-2500 words.
-- Use clear, professional language.
-- Do NOT fabricate or hallucinate URLs.
-- Output ONLY the Markdown report, no preamble or commentary.
-"""
+from utils import (
+    BASIC_SYSTEM_PROMPT, DEFAULT_MODEL, DEFAULT_PERMISSION_MODE, DEFAULT_TOOLS,
+    PLAN_REFLECT_SYSTEM_PROMPT, slugify, strip_preamble,
+)
 
 
-def slugify(text: str) -> str:
-    """Convert text to a filesystem-safe slug."""
-    text = text.lower().strip()
-    text = re.sub(r"[^\w\s-]", "", text)
-    text = re.sub(r"[\s_]+", "-", text)
-    return text[:80].strip("-")
+PROMPTS = {
+    "basic": (BASIC_SYSTEM_PROMPT, 30),
+    "plan-reflect": (PLAN_REFLECT_SYSTEM_PROMPT, 40),
+}
 
 
-async def do_research(topic: str) -> dict:
+async def do_research(topic: str, mode: str = "basic") -> dict:
     """Run research agent and return results dict."""
+    system_prompt, max_turns = PROMPTS.get(mode, PROMPTS["basic"])
+
     options = ClaudeAgentOptions(
-        model="claude-sonnet-4-6",
-        system_prompt=SYSTEM_PROMPT,
-        allowed_tools=["WebSearch", "WebFetch"],
-        permission_mode="bypassPermissions",
-        max_turns=30,
+        model=DEFAULT_MODEL,
+        system_prompt=system_prompt,
+        allowed_tools=DEFAULT_TOOLS,
+        permission_mode=DEFAULT_PERMISSION_MODE,
+        max_turns=max_turns,
     )
 
     report_parts: list[str] = []
@@ -89,8 +72,12 @@ async def do_research(topic: str) -> dict:
             cost_usd = getattr(message, "total_cost_usd", 0.0) or 0.0
 
     report = "\n".join(report_parts)
+    if mode == "plan-reflect":
+        report = strip_preamble(report)
+
     return {
         "topic": topic,
+        "mode": mode,
         "report": report,
         "words": len(report.split()),
         "turns": turn_count,
@@ -115,10 +102,17 @@ async def research_endpoint(request: Request) -> JSONResponse:
             status_code=400,
         )
 
-    print(f"\n[{time.strftime('%H:%M:%S')}] Research request: {topic}")
+    mode = body.get("mode", "basic")
+    if mode not in PROMPTS:
+        return JSONResponse(
+            {"error": f"Invalid 'mode': must be one of {list(PROMPTS.keys())}"},
+            status_code=400,
+        )
+
+    print(f"\n[{time.strftime('%H:%M:%S')}] Research request ({mode}): {topic}")
 
     start = time.time()
-    result = await do_research(topic)
+    result = await do_research(topic, mode=mode)
     elapsed = time.time() - start
     result["elapsed_seconds"] = round(elapsed, 1)
 
@@ -147,7 +141,7 @@ def main() -> None:
     args = parser.parse_args()
 
     print(f"\nResearch Agent API starting on http://{args.host}:{args.port}")
-    print(f"  POST /research  — {{\"topic\": \"your topic\"}}")
+    print(f"  POST /research  — {{\"topic\": \"...\", \"mode\": \"basic|plan-reflect\"}}")
     print(f"  GET  /health    — health check\n")
 
     uvicorn.run(app, host=args.host, port=args.port, log_level="info")
