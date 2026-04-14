@@ -5,6 +5,7 @@
 [![Tests](https://img.shields.io/badge/tests-42%2F42-brightgreen.svg)](#testing)
 [![Code-First](https://img.shields.io/badge/code--first-python-blue.svg)](#setup)
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](#docker)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 **Autonomous research agents that plan, execute, and self-critique.** Five demos showing progressively more sophisticated agent patterns with the [Claude Agent SDK](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/sdk-overview) — from single-agent one-shot to multi-agent orchestration with plan-and-execute + reflection. Reports average 2,253 words with 8-18 verified sources, costs $0.42-$1.97 per run.
 
@@ -97,9 +98,6 @@ flowchart LR
     B --> C["Decompose → Search → Evaluate → Write"]
     C --> D["output/{slug}.md"]
 
-    style A fill:#e1f5fe,color:#0f1117,stroke:none
-    style B fill:#fff3e0,color:#0f1117,stroke:none
-    style D fill:#c8e6c9,color:#0f1117,stroke:none
 ```
 
 ### Usage
@@ -148,14 +146,6 @@ flowchart TD
     D4 --> E
     E --> F["output/multi-{slug}.md"]
 
-    style A fill:#e1f5fe,color:#0f1117,stroke:none
-    style B fill:#fce4ec,color:#0f1117,stroke:none
-    style D1 fill:#fff3e0,color:#0f1117,stroke:none
-    style D2 fill:#fff3e0,color:#0f1117,stroke:none
-    style D3 fill:#fff3e0,color:#0f1117,stroke:none
-    style D4 fill:#fff3e0,color:#0f1117,stroke:none
-    style E fill:#fce4ec,color:#0f1117,stroke:none
-    style F fill:#c8e6c9,color:#0f1117,stroke:none
 ```
 
 ### Usage
@@ -221,10 +211,6 @@ flowchart LR
     C -->|"JSON response"| B
     B -->|"report + cost + meta"| D["n8n: Format\n& Send Email"]
 
-    style A fill:#e1f5fe,color:#0f1117,stroke:none
-    style B fill:#e8eaf6,color:#0f1117,stroke:none
-    style C fill:#fff3e0,color:#0f1117,stroke:none
-    style D fill:#c8e6c9,color:#0f1117,stroke:none
 ```
 
 ### Usage
@@ -318,11 +304,6 @@ flowchart LR
     C -->|"report"| D["Reflect\nHaiku"]
     D --> E["output/plan-reflect-{slug}.md"]
 
-    style A fill:#e1f5fe,color:#0f1117,stroke:none
-    style B fill:#fff3e0,color:#0f1117,stroke:none
-    style C fill:#fff3e0,color:#0f1117,stroke:none
-    style D fill:#fff3e0,color:#0f1117,stroke:none
-    style E fill:#c8e6c9,color:#0f1117,stroke:none
 ```
 
 ### Usage
@@ -436,14 +417,6 @@ flowchart TD
     C4 --> D
     D --> E["output/plan-reflect-multi-{slug}.md\nPlan + Report + Reflection + Meta"]
 
-    style A fill:#e1f5fe,color:#0f1117,stroke:none
-    style B fill:#fce4ec,color:#0f1117,stroke:none
-    style C1 fill:#fff3e0,color:#0f1117,stroke:none
-    style C2 fill:#fff3e0,color:#0f1117,stroke:none
-    style C3 fill:#fff3e0,color:#0f1117,stroke:none
-    style C4 fill:#fff3e0,color:#0f1117,stroke:none
-    style D fill:#fce4ec,color:#0f1117,stroke:none
-    style E fill:#c8e6c9,color:#0f1117,stroke:none
 ```
 
 ### Usage
@@ -629,4 +602,4 @@ managed-agent-poc/
 
 ## License
 
-Private project.
+[MIT](LICENSE)
