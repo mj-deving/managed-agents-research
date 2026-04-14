@@ -315,14 +315,6 @@ Three separate `query()` calls using the optimal model per phase. Planning and r
 +------------------------------------------------+
         |
         v
-|  PHASE 3 — REFLECT                                            |
-|  ├── Self-critique: coverage, source quality, contradictions  |
-|  ├── If "Needs Improvement": targeted follow-up (max 1 iter)  |
-|  └── Output reflection notes + meta-info                      |
-|                                                               |
-+---------------------------------------------------------------+
-        |
-        v
 [output/plan-reflect-{topic-slug}.md]
   Contains: Research Plan + Report + Reflection Notes + Meta
 ```
@@ -528,8 +520,14 @@ Total comparison cost: $1.13
 
 **Configuration Constants:**
 - `DEFAULT_MODEL` — `claude-sonnet-4-6` (single place to change model)
+- `HAIKU_MODEL` — `claude-haiku-4-5-20251001` (used for plan/reflect phases)
 - `DEFAULT_TOOLS` — `["WebSearch", "WebFetch"]`
 - `DEFAULT_PERMISSION_MODE` — `bypassPermissions`
+
+**Phase-Specific Prompts (Demo 4):**
+- `PLAN_PHASE_PROMPT` — planning-only prompt for Haiku
+- `EXECUTE_PHASE_PROMPT` — research execution prompt for Sonnet
+- `REFLECT_PHASE_PROMPT` — self-critique prompt for Haiku
 
 ---
 
@@ -572,7 +570,7 @@ All demos produce reports with this format:
 | uvicorn | 0.44.0 |
 | Claude Code CLI | 2.1.101 |
 | n8n | 2.11.2 |
-| Model | claude-sonnet-4-6 |
+| Models | claude-sonnet-4-6 (execute), claude-haiku-4-5-20251001 (plan/reflect) |
 
 ## Cost (Verified)
 
