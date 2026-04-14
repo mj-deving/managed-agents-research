@@ -97,8 +97,9 @@ flowchart LR
     B --> C["Decompose → Search → Evaluate → Write"]
     C --> D["output/{slug}.md"]
 
-    style B fill:#6c8cff,color:#0f1117,stroke:none
-    style D fill:#4ade80,color:#0f1117,stroke:none
+    style A fill:#e1f5fe,color:#0f1117,stroke:none
+    style B fill:#fff3e0,color:#0f1117,stroke:none
+    style D fill:#c8e6c9,color:#0f1117,stroke:none
 ```
 
 ### Usage
@@ -147,12 +148,14 @@ flowchart TD
     D4 --> E
     E --> F["output/multi-{slug}.md"]
 
-    style B fill:#6c8cff,color:#0f1117,stroke:none
-    style D1 fill:#a78bfa,color:#0f1117,stroke:none
-    style D2 fill:#a78bfa,color:#0f1117,stroke:none
-    style D3 fill:#a78bfa,color:#0f1117,stroke:none
-    style D4 fill:#a78bfa,color:#0f1117,stroke:none
-    style F fill:#4ade80,color:#0f1117,stroke:none
+    style A fill:#e1f5fe,color:#0f1117,stroke:none
+    style B fill:#fce4ec,color:#0f1117,stroke:none
+    style D1 fill:#fff3e0,color:#0f1117,stroke:none
+    style D2 fill:#fff3e0,color:#0f1117,stroke:none
+    style D3 fill:#fff3e0,color:#0f1117,stroke:none
+    style D4 fill:#fff3e0,color:#0f1117,stroke:none
+    style E fill:#fce4ec,color:#0f1117,stroke:none
+    style F fill:#c8e6c9,color:#0f1117,stroke:none
 ```
 
 ### Usage
@@ -218,8 +221,10 @@ flowchart LR
     C -->|"JSON response"| B
     B -->|"report + cost + meta"| D["n8n: Format\n& Send Email"]
 
-    style B fill:#22d3ee,color:#0f1117,stroke:none
-    style C fill:#6c8cff,color:#0f1117,stroke:none
+    style A fill:#e1f5fe,color:#0f1117,stroke:none
+    style B fill:#e8eaf6,color:#0f1117,stroke:none
+    style C fill:#fff3e0,color:#0f1117,stroke:none
+    style D fill:#c8e6c9,color:#0f1117,stroke:none
 ```
 
 ### Usage
@@ -313,10 +318,11 @@ flowchart LR
     C -->|"report"| D["Reflect\nHaiku"]
     D --> E["output/plan-reflect-{slug}.md"]
 
-    style B fill:#22d3ee,color:#0f1117,stroke:none
-    style C fill:#6c8cff,color:#0f1117,stroke:none
-    style D fill:#22d3ee,color:#0f1117,stroke:none
-    style E fill:#4ade80,color:#0f1117,stroke:none
+    style A fill:#e1f5fe,color:#0f1117,stroke:none
+    style B fill:#fff3e0,color:#0f1117,stroke:none
+    style C fill:#fff3e0,color:#0f1117,stroke:none
+    style D fill:#fff3e0,color:#0f1117,stroke:none
+    style E fill:#c8e6c9,color:#0f1117,stroke:none
 ```
 
 ### Usage
@@ -430,13 +436,14 @@ flowchart TD
     C4 --> D
     D --> E["output/plan-reflect-multi-{slug}.md\nPlan + Report + Reflection + Meta"]
 
-    style B fill:#6c8cff,color:#0f1117,stroke:none
-    style C1 fill:#a78bfa,color:#0f1117,stroke:none
-    style C2 fill:#a78bfa,color:#0f1117,stroke:none
-    style C3 fill:#a78bfa,color:#0f1117,stroke:none
-    style C4 fill:#a78bfa,color:#0f1117,stroke:none
-    style D fill:#fbbf24,color:#0f1117,stroke:none
-    style E fill:#4ade80,color:#0f1117,stroke:none
+    style A fill:#e1f5fe,color:#0f1117,stroke:none
+    style B fill:#fce4ec,color:#0f1117,stroke:none
+    style C1 fill:#fff3e0,color:#0f1117,stroke:none
+    style C2 fill:#fff3e0,color:#0f1117,stroke:none
+    style C3 fill:#fff3e0,color:#0f1117,stroke:none
+    style C4 fill:#fff3e0,color:#0f1117,stroke:none
+    style D fill:#fce4ec,color:#0f1117,stroke:none
+    style E fill:#c8e6c9,color:#0f1117,stroke:none
 ```
 
 ### Usage
