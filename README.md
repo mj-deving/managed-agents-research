@@ -49,6 +49,17 @@ pytest tests/ -v
 - `test_prompts.py` — validates BASIC/PLAN_REFLECT/RESEARCHER prompt structure
 - `test_output_parsing.py` — report section detection, meta-info parsing, source URL extraction
 
+## Comparison Dashboard
+
+Visual HTML dashboard comparing all demos side-by-side with charts and sample outputs:
+
+```bash
+cd static && python3 -m http.server 8080
+# Open http://localhost:8080/comparison.html
+```
+
+Or open `static/comparison.html` directly in a browser.
+
 ---
 
 ## Demo 1: Simple Research Agent
@@ -597,9 +608,9 @@ managed-agent-poc/
 ├── utils.py                   # Shared utilities, prompts, config constants
 ├── requirements.txt           # Python dependencies
 ├── n8n_workflow.json          # Demo 3: Importable n8n workflow
+├── static/comparison.html     # Visual comparison dashboard (open in browser)
+├── tests/                     # pytest test suite (42 tests)
 ├── output/                    # Generated reports
-│   ├── state-of-ai-coding-agents-2026.md
-│   └── multi-claude-managed-agents-vs-langchain.md
 ├── venv/                      # Python virtual environment
 └── README.md
 ```
