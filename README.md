@@ -92,16 +92,13 @@ Single agent that researches a topic autonomously and produces a structured Mark
 ### Architecture
 
 ```mermaid
-flowchart TD
-    A["CLI: topic string"] --> B["query() — Sonnet"]
-    B --> C["1. Decompose into subtopics"]
-    C --> D["2. WebSearch per subtopic"]
-    D --> E["3. Evaluate & filter sources"]
-    E --> F["4. Write Markdown report"]
-    F --> G["output/{topic-slug}.md"]
+flowchart LR
+    A["topic"] --> B["query() — Sonnet\nWebSearch + WebFetch"]
+    B --> C["Decompose → Search → Evaluate → Write"]
+    C --> D["output/{slug}.md"]
 
     style B fill:#6c8cff,color:#0f1117,stroke:none
-    style G fill:#4ade80,color:#0f1117,stroke:none
+    style D fill:#4ade80,color:#0f1117,stroke:none
 ```
 
 ### Usage
@@ -310,11 +307,11 @@ Three separate `query()` calls using the optimal model per phase. Planning and r
 ### Architecture
 
 ```mermaid
-flowchart TD
-    A["CLI: topic string"] --> B["Phase 1: query() — Haiku\nCreate 3-5 research steps"]
-    B -->|"plan text"| C["Phase 2: query() — Sonnet\nWebSearch + WebFetch\nExecute each step sequentially"]
-    C -->|"report text"| D["Phase 3: query() — Haiku\nSelf-critique + Meta"]
-    D --> E["output/plan-reflect-{slug}.md\nPlan + Report + Reflection + Meta"]
+flowchart LR
+    A["topic"] --> B["Plan\nHaiku"]
+    B -->|"plan"| C["Execute\nSonnet + WebSearch"]
+    C -->|"report"| D["Reflect\nHaiku"]
+    D --> E["output/plan-reflect-{slug}.md"]
 
     style B fill:#22d3ee,color:#0f1117,stroke:none
     style C fill:#6c8cff,color:#0f1117,stroke:none
