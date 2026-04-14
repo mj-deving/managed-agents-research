@@ -1,8 +1,6 @@
-# Managed Agent PoC — Research Agent
+# Managed Agents — Research Agent
 
 Autonomous Research Agents built with the [Claude Agent SDK](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/sdk-overview) (`claude-agent-sdk`). Five demos showing progressively more sophisticated agent patterns: single agent, multi-agent orchestration, n8n hybrid integration, plan-and-execute with reflection, and multi-agent plan-and-reflect.
-
-Part of the [KI-Roadmap P3](../KI-Roadmap/Plans/P3-Managed-Agent-PoC-Spec.md) project.
 
 ## Demos Overview
 
@@ -72,24 +70,17 @@ Single agent that researches a topic autonomously and produces a structured Mark
 
 ### Architecture
 
-```
-[CLI: topic string]
-        |
-        v
-+-- claude-agent-sdk (query) ------------------+
-|                                               |
-|  Model: claude-sonnet-4-6                     |
-|  Tools: WebSearch, WebFetch                   |
-|                                               |
-|  1. Decompose topic into 3-5 subtopics        |
-|  2. Web search per subtopic                   |
-|  3. Evaluate and filter sources               |
-|  4. Write structured Markdown report          |
-|                                               |
-+-----------------------------------------------+
-        |
-        v
-[output/{topic-slug}.md]
+```mermaid
+flowchart TD
+    A["CLI: topic string"] --> B["query() — Sonnet"]
+    B --> C["1. Decompose into subtopics"]
+    C --> D["2. WebSearch per subtopic"]
+    D --> E["3. Evaluate & filter sources"]
+    E --> F["4. Write Markdown report"]
+    F --> G["output/{topic-slug}.md"]
+
+    style B fill:#6c8cff,color:#0f1117,stroke:none
+    style G fill:#4ade80,color:#0f1117,stroke:none
 ```
 
 ### Usage
@@ -124,29 +115,26 @@ Orchestrator agent decomposes the topic into subtopics and spawns parallel sub-a
 
 ### Architecture
 
-```
-[CLI: topic string]
-        |
-        v
-+-- ClaudeSDKClient (streaming) ----------------+
-|                                                |
-|  Orchestrator Agent (claude-sonnet-4-6)        |
-|  "Decompose topic, spawn researchers"          |
-|                                                |
-|  ┌──────────┐ ┌──────────┐ ┌──────────┐       |
-|  │Researcher│ │Researcher│ │Researcher│  ...   |
-|  │Subtopic 1│ │Subtopic 2│ │Subtopic 3│       |
-|  │WebSearch │ │WebSearch │ │WebSearch │       |
-|  │WebFetch  │ │WebFetch  │ │WebFetch  │       |
-|  └────┬─────┘ └────┬─────┘ └────┬─────┘       |
-|       └─────────────┼───────────┘              |
-|                     v                          |
-|         Orchestrator stitches report           |
-|                                                |
-+------------------------------------------------+
-        |
-        v
-[output/multi-{topic-slug}.md]
+```mermaid
+flowchart TD
+    A["CLI: topic string"] --> B["Orchestrator — Sonnet"]
+    B --> C["Decompose into 3-5 subtopics"]
+    C --> D1["Researcher 1\nWebSearch + WebFetch"]
+    C --> D2["Researcher 2\nWebSearch + WebFetch"]
+    C --> D3["Researcher 3\nWebSearch + WebFetch"]
+    C --> D4["Researcher ...\nWebSearch + WebFetch"]
+    D1 --> E["Orchestrator stitches report"]
+    D2 --> E
+    D3 --> E
+    D4 --> E
+    E --> F["output/multi-{slug}.md"]
+
+    style B fill:#6c8cff,color:#0f1117,stroke:none
+    style D1 fill:#a78bfa,color:#0f1117,stroke:none
+    style D2 fill:#a78bfa,color:#0f1117,stroke:none
+    style D3 fill:#a78bfa,color:#0f1117,stroke:none
+    style D4 fill:#a78bfa,color:#0f1117,stroke:none
+    style F fill:#4ade80,color:#0f1117,stroke:none
 ```
 
 ### Usage
@@ -205,19 +193,15 @@ HTTP API server that any client (n8n, curl, Postman) can call to trigger researc
 
 ### Architecture
 
-```
-[n8n Webhook / curl]
-        |
-        v  POST /research {"topic": "..."}
-+-- Starlette/Uvicorn HTTP Server -----+
-|                                       |
-|  /research  → runs research agent     |
-|  /health    → health check            |
-|                                       |
-+---------------------------------------+
-        |
-        v  JSON response
-[n8n: Format Report → Send Email]
+```mermaid
+flowchart LR
+    A["n8n Webhook\nor curl"] -->|"POST /research"| B["Starlette Server\nport 8000"]
+    B --> C["query() — Sonnet\nWebSearch + WebFetch"]
+    C -->|"JSON response"| B
+    B -->|"report + cost + meta"| D["n8n: Format\n& Send Email"]
+
+    style B fill:#22d3ee,color:#0f1117,stroke:none
+    style C fill:#6c8cff,color:#0f1117,stroke:none
 ```
 
 ### Usage
@@ -304,34 +288,17 @@ Three separate `query()` calls using the optimal model per phase. Planning and r
 
 ### Architecture
 
-```
-[CLI: topic string]
-        |
-        v
-+-- Phase 1: query() — Haiku -------------------+
-|  Create 3-5 research steps with questions      |
-+------------------------------------------------+
-        |  plan text
-        v
-+-- Phase 2: query() — Sonnet ------------------+
-|  Tools: WebSearch, WebFetch                    |
-|                                                |
-|  EXECUTE                                       |
-|  ├── Step 1: Search → Evaluate → Record        |
-|  ├── Step 2: Search → Evaluate → Record        |
-|  ├── ...                                       |
-|  └── Synthesize all findings into report       |
-+------------------------------------------------+
-        |  report text
-        v
-+-- Phase 3: query() — Haiku -------------------+
-|  Self-critique: coverage, sources, gaps        |
-|  Output: Reflection Notes + Meta               |
-+------------------------------------------------+
-        |
-        v
-[output/plan-reflect-{topic-slug}.md]
-  Contains: Research Plan + Report + Reflection Notes + Meta
+```mermaid
+flowchart TD
+    A["CLI: topic string"] --> B["Phase 1: query() — Haiku\nCreate 3-5 research steps"]
+    B -->|"plan text"| C["Phase 2: query() — Sonnet\nWebSearch + WebFetch\nExecute each step sequentially"]
+    C -->|"report text"| D["Phase 3: query() — Haiku\nSelf-critique + Meta"]
+    D --> E["output/plan-reflect-{slug}.md\nPlan + Report + Reflection + Meta"]
+
+    style B fill:#22d3ee,color:#0f1117,stroke:none
+    style C fill:#6c8cff,color:#0f1117,stroke:none
+    style D fill:#22d3ee,color:#0f1117,stroke:none
+    style E fill:#4ade80,color:#0f1117,stroke:none
 ```
 
 ### Usage
@@ -432,32 +399,26 @@ Combines Demo 2's multi-agent orchestration with Demo 4's plan-and-execute + ref
 
 ### Architecture
 
-```
-[CLI: topic string]
-        |
-        v
-+-- ClaudeSDKClient (streaming) ----------------------------+
-|                                                            |
-|  PHASE 1 — PLAN (Orchestrator)                             |
-|  └── Create 3-5 research steps with questions              |
-|                                                            |
-|  PHASE 2 — DELEGATE                                        |
-|  ┌──────────┐ ┌──────────┐ ┌──────────┐                   |
-|  │Researcher│ │Researcher│ │Researcher│  ...               |
-|  │ Step 1   │ │ Step 2   │ │ Step 3   │                   |
-|  │WebSearch │ │WebSearch │ │WebSearch │                   |
-|  └────┬─────┘ └────┬─────┘ └────┬─────┘                   |
-|       └─────────────┼───────────┘                          |
-|                     v                                      |
-|  PHASE 3 — SYNTHESIZE + REFLECT (Orchestrator)             |
-|  ├── Stitch results into unified report                    |
-|  ├── Self-critique with optional correction                |
-|  └── Output: Plan + Report + Reflection + Meta             |
-|                                                            |
-+------------------------------------------------------------+
-        |
-        v
-[output/plan-reflect-multi-{topic-slug}.md]
+```mermaid
+flowchart TD
+    A["CLI: topic string"] --> B["Orchestrator — Sonnet\nPhase 1: Create research plan"]
+    B --> C1["Researcher 1\nStep 1"]
+    B --> C2["Researcher 2\nStep 2"]
+    B --> C3["Researcher 3\nStep 3"]
+    B --> C4["Researcher ...\nStep N"]
+    C1 --> D["Orchestrator\nPhase 3: Synthesize + Reflect"]
+    C2 --> D
+    C3 --> D
+    C4 --> D
+    D --> E["output/plan-reflect-multi-{slug}.md\nPlan + Report + Reflection + Meta"]
+
+    style B fill:#6c8cff,color:#0f1117,stroke:none
+    style C1 fill:#a78bfa,color:#0f1117,stroke:none
+    style C2 fill:#a78bfa,color:#0f1117,stroke:none
+    style C3 fill:#a78bfa,color:#0f1117,stroke:none
+    style C4 fill:#a78bfa,color:#0f1117,stroke:none
+    style D fill:#fbbf24,color:#0f1117,stroke:none
+    style E fill:#4ade80,color:#0f1117,stroke:none
 ```
 
 ### Usage
@@ -599,6 +560,26 @@ All costs from actual test runs:
 | Demo 4 | $0.60 avg | 2,214 avg | ~2 min | 5 topics (see Demo 4 results) | 2026-04-13 |
 | Demo 5 | $1.97 | 2,467 | ~5 min | State of AI Coding Agents 2026 | 2026-04-13 |
 
+## Docker
+
+Run the HTTP API server (Demo 3) in a container:
+
+```bash
+# Agent server only
+docker compose up agent
+
+# Agent server + n8n
+docker compose --profile with-n8n up
+```
+
+The agent service builds from the included `Dockerfile` (Python 3.12-slim) and exposes port 8000. Set `ANTHROPIC_API_KEY` in your environment or `.env` file.
+
+```bash
+# Build and test
+docker compose build
+curl http://localhost:8000/health
+```
+
 ## Project Structure
 
 ```
@@ -611,6 +592,8 @@ managed-agent-poc/
 ├── run_comparison.py          # Comparison runner (Demo 1 vs Demo 4)
 ├── utils.py                   # Shared utilities, prompts, config constants
 ├── requirements.txt           # Python dependencies
+├── Dockerfile                 # Demo 3 container (Python 3.12-slim)
+├── docker-compose.yml         # Agent + optional n8n services
 ├── n8n_workflow.json          # Demo 3: Importable n8n workflow
 ├── static/comparison.html     # Visual comparison dashboard (open in browser)
 ├── tests/                     # pytest test suite (42 tests)
