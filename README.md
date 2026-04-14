@@ -1,17 +1,38 @@
 # Managed Agents — Research Agent
 
-Autonomous Research Agents built with the [Claude Agent SDK](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/sdk-overview) (`claude-agent-sdk`). Five demos showing progressively more sophisticated agent patterns: single agent, multi-agent orchestration, n8n hybrid integration, plan-and-execute with reflection, and multi-agent plan-and-reflect.
+[![Claude SDK](https://img.shields.io/badge/claude--agent--sdk-0.1.58-blue.svg)](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/sdk-overview)
+[![Status](https://img.shields.io/badge/status-live-brightgreen.svg)](#cost-verified)
+[![Tests](https://img.shields.io/badge/tests-42%2F42-brightgreen.svg)](#testing)
+[![Code-First](https://img.shields.io/badge/code--first-python-blue.svg)](#setup)
+[![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](#docker)
+
+**Autonomous research agents that plan, execute, and self-critique.** Five demos showing progressively more sophisticated agent patterns with the [Claude Agent SDK](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/sdk-overview) — from single-agent one-shot to multi-agent orchestration with plan-and-execute + reflection. Reports average 2,253 words with 8-18 verified sources, costs $0.42-$1.97 per run.
+
+## Table of Contents
+
+- [Demos Overview](#demos-overview) — all 5 demos at a glance
+- [Demo 1: Single Agent](#demo-1-simple-research-agent) — one-shot `query()`
+- [Demo 2: Multi-Agent](#demo-2-multi-agent-research) — parallel sub-agents
+- [Demo 3: HTTP API](#demo-3-n8n-hybrid) — Starlette server + n8n
+- [Demo 4: Plan + Reflect](#demo-4-plan--reflect-research-agent) — Haiku plan, Sonnet execute, Haiku reflect
+- [Demo 5: Multi + Plan](#demo-5-multi-agent-plan--reflect) — orchestrator + sub-agents + reflection
+- [Comparison Runner](#comparison-runner) — Demo 1 vs Demo 4 side-by-side
+- [Dashboard](#comparison-dashboard) — visual HTML comparison
+- [Testing](#testing) — 42 pytest tests, no API calls
+- [Docker](#docker) — containerized Demo 3
+- [Cost](#cost-verified) — verified run costs
+- [Project Structure](#project-structure)
 
 ## Demos Overview
 
 | Demo | Script | Pattern | Description |
 |------|--------|---------|-------------|
-| 1 | `research_agent.py` | Single agent | One agent researches topic end-to-end |
-| 2 | `multi_agent_research.py` | Multi-agent | Orchestrator spawns parallel sub-agents per subtopic |
-| 3 | `n8n_hybrid_server.py` | HTTP API + n8n | Webhook triggers research, n8n formats and emails |
-| 4 | `plan_reflect_agent.py` | Plan + Reflect | Structured planning, sequential execution, self-critique |
-| 5 | `plan_reflect_multi_agent.py` | Multi-Agent + Plan-Reflect | Orchestrator plans, delegates to sub-agents, reflects |
-| — | `run_comparison.py` | Comparison runner | Runs Demo 1 vs Demo 4 side-by-side on same topic |
+| [1](#demo-1-simple-research-agent) | `research_agent.py` | Single agent | One agent researches topic end-to-end |
+| [2](#demo-2-multi-agent-research) | `multi_agent_research.py` | Multi-agent | Orchestrator spawns parallel sub-agents per subtopic |
+| [3](#demo-3-n8n-hybrid) | `n8n_hybrid_server.py` | HTTP API + n8n | Webhook triggers research, n8n formats and emails |
+| [4](#demo-4-plan--reflect-research-agent) | `plan_reflect_agent.py` | Plan + Reflect | Structured planning, sequential execution, self-critique |
+| [5](#demo-5-multi-agent-plan--reflect) | `plan_reflect_multi_agent.py` | Multi + Plan | Orchestrator plans, delegates to sub-agents, reflects |
+| — | `run_comparison.py` | Comparison | Runs Demo 1 vs Demo 4 side-by-side on same topic |
 
 ## Prerequisites
 
