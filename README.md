@@ -25,6 +25,20 @@
 
 ## Demos Overview
 
+```mermaid
+flowchart LR
+    D1["Demo 1\nSingle Agent\n$0.81"] --> D2["Demo 2\nMulti-Agent\n$1.70"]
+    D1 --> D3["Demo 3\nHTTP API\n$0.42"]
+    D1 --> D4["Demo 4\nPlan + Reflect\n$0.60"]
+    D2 & D4 --> D5["Demo 5\nMulti + Plan\n$1.97"]
+
+    style D1 fill:#6c8cff,color:#0f1117,stroke:none
+    style D2 fill:#a78bfa,color:#0f1117,stroke:none
+    style D3 fill:#22d3ee,color:#0f1117,stroke:none
+    style D4 fill:#fbbf24,color:#0f1117,stroke:none
+    style D5 fill:#4ade80,color:#0f1117,stroke:none
+```
+
 | Demo | Script | Pattern | Description |
 |------|--------|---------|-------------|
 | [1](#demo-1-simple-research-agent) | `research_agent.py` | Single agent | One agent researches topic end-to-end |
@@ -33,6 +47,8 @@
 | [4](#demo-4-plan--reflect-research-agent) | `plan_reflect_agent.py` | Plan + Reflect | Structured planning, sequential execution, self-critique |
 | [5](#demo-5-multi-agent-plan--reflect) | `plan_reflect_multi_agent.py` | Multi + Plan | Orchestrator plans, delegates to sub-agents, reflects |
 | — | `run_comparison.py` | Comparison | Runs Demo 1 vs Demo 4 side-by-side on same topic |
+
+---
 
 ## Prerequisites
 
@@ -54,6 +70,8 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+---
+
 ## Testing
 
 Unit tests for shared utilities, system prompt structure, and output parsing. All tests run locally without API calls.
@@ -67,6 +85,8 @@ pytest tests/ -v
 - `test_utils.py` — slugify, strip_preamble, check_report_structure, config constants
 - `test_prompts.py` — validates BASIC/PLAN_REFLECT/RESEARCHER prompt structure
 - `test_output_parsing.py` — report section detection, meta-info parsing, source URL extraction
+
+---
 
 ## Comparison Dashboard
 
@@ -501,9 +521,19 @@ Total comparison cost: $1.13
 
 ---
 
-## Shared Utilities
+## Key SDK Details
 
-`utils.py` contains shared code used across all demos:
+- **`query()`** for one-shot interactions (Demo 1, Demo 3 API, Demo 4)
+- **`ClaudeSDKClient`** for streaming/multi-agent (Demo 2, Demo 5)
+- **`AgentDefinition`** to declare sub-agents the orchestrator can spawn (Demo 2, Demo 5)
+- Tool names are Claude Code built-ins: `WebSearch`, `WebFetch` (not `web_search`)
+- All configuration centralized in `utils.py` (`DEFAULT_MODEL`, `DEFAULT_TOOLS`, `DEFAULT_PERMISSION_MODE`)
+- Authentication handled by the `claude` CLI — no `ANTHROPIC_API_KEY` export needed
+
+**Report structure** — all demos produce: Executive Summary → Key Findings → Sources → Conclusions.
+
+<details>
+<summary><strong>Shared Utilities (utils.py)</strong></summary>
 
 **Functions:**
 - `slugify()` — filesystem-safe filename generation
@@ -526,18 +556,10 @@ Total comparison cost: $1.13
 - `EXECUTE_PHASE_PROMPT` — research execution prompt for Sonnet
 - `REFLECT_PHASE_PROMPT` — self-critique prompt for Haiku
 
----
+</details>
 
-## Report Structure
-
-All demos produce reports with this format:
-
-- **Executive Summary** — 2-3 paragraph overview
-- **Key Findings** — One subsection per subtopic with detailed analysis
-- **Sources** — Numbered list with titles and URLs
-- **Conclusions** — Synthesis of findings, trends, and implications
-
-## Test Topics
+<details>
+<summary><strong>Test Topics (5 verified)</strong></summary>
 
 | # | Topic | Expected Output | Tested |
 |---|-------|-----------------|--------|
@@ -547,14 +569,9 @@ All demos produce reports with this format:
 | 4 | "Claude Managed Agents vs LangChain" | Technical comparison | Demo 2: 2,178w / Demo 4: 2,588w |
 | 5 | "RAG Architekturen 2026: Naive vs Graph vs Wiki" | Architecture guide | Demo 4: 1,823w |
 
-## Key SDK Details
+</details>
 
-- **`query()`** for one-shot interactions (Demo 1, Demo 3 API, Demo 4)
-- **`ClaudeSDKClient`** for streaming/multi-agent (Demo 2, Demo 5)
-- **`AgentDefinition`** to declare sub-agents the orchestrator can spawn (Demo 2, Demo 5)
-- Tool names are Claude Code built-ins: `WebSearch`, `WebFetch` (not `web_search`)
-- All configuration centralized in `utils.py` (`DEFAULT_MODEL`, `DEFAULT_TOOLS`, `DEFAULT_PERMISSION_MODE`)
-- Authentication handled by the `claude` CLI — no `ANTHROPIC_API_KEY` export needed
+---
 
 ## Tech Stack
 
@@ -569,6 +586,8 @@ All demos produce reports with this format:
 | n8n | 2.11.2 |
 | Models | claude-sonnet-4-6 (execute), claude-haiku-4-5-20251001 (plan/reflect) |
 
+---
+
 ## Cost (Verified)
 
 All costs from actual test runs:
@@ -580,6 +599,8 @@ All costs from actual test runs:
 | Demo 3 | $0.42 | 1,956 | 164s | n8n vs Make.com vs Zapier 2026 | 2026-04-10 |
 | Demo 4 | $0.60 avg | 2,214 avg | ~2 min | 5 topics (see Demo 4 results) | 2026-04-13 |
 | Demo 5 | $1.97 | 2,467 | ~5 min | State of AI Coding Agents 2026 | 2026-04-13 |
+
+---
 
 ## Docker
 
@@ -600,6 +621,8 @@ The agent service builds from the included `Dockerfile` (Python 3.12-slim) and e
 docker compose build
 curl http://localhost:8000/health
 ```
+
+---
 
 ## Project Structure
 
