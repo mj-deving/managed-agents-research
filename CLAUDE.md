@@ -47,7 +47,7 @@ pytest tests/ -v
 - **Demo 1** (`research_agent.py`): `query()` one-shot — single agent with `WebSearch`/`WebFetch` tools, 30 max turns
 - **Demo 2** (`multi_agent_research.py`): `ClaudeSDKClient` streaming — orchestrator decomposes topic into subtopics, spawns parallel researcher sub-agents via `AgentDefinition`, stitches results. Orchestrator: 60 max turns, sub-agents: 20 max turns
 - **Demo 3** (`n8n_hybrid_server.py`): Starlette/Uvicorn HTTP server wrapping `query()`. Endpoints: `POST /research` (supports `mode=basic|plan-reflect`), `GET /health`. Companion `n8n_workflow.json` for webhook→research→email workflow
-- **Demo 4** (`plan_reflect_agent.py`): `query()` with structured 3-phase system prompt — Plan (3-5 research steps) → Execute (sequential with per-step evaluation) → Reflect (self-critique, max 1 correction). Output includes plan, report, reflection notes, and meta-info. 40 max turns
+- **Demo 4** (`plan_reflect_agent.py`): 3 separate `query()` calls with model-per-phase — Plan (Haiku, 5 turns) → Execute (Sonnet, 30 turns, WebSearch/WebFetch) → Reflect (Haiku, 5 turns). Context passed between phases. Output includes plan, report, reflection notes, and meta-info
 - **Demo 5** (`plan_reflect_multi_agent.py`): `ClaudeSDKClient` combining multi-agent orchestration with plan-and-execute + reflection. Orchestrator plans, delegates steps to parallel sub-agents, synthesizes, and reflects. 60 max turns orchestrator, 20 max turns sub-agents
 
 **Shared code (`utils.py`):**
@@ -57,7 +57,7 @@ pytest tests/ -v
 - `PLAN_REFLECT_SYSTEM_PROMPT` — system prompt for Demos 3 (plan-reflect mode), 4
 
 **Shared patterns across all scripts:**
-- Model: `claude-sonnet-4-6`
+- Models: `claude-sonnet-4-6` (execute/research), `claude-haiku-4-5-20251001` (plan/reflect in Demo 4)
 - Tools: `WebSearch`, `WebFetch` (Claude Code built-in names, not snake_case)
 - `permission_mode="bypassPermissions"` for unattended operation
 - Auth handled by Claude CLI — no `ANTHROPIC_API_KEY` needed

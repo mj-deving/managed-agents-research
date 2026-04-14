@@ -283,7 +283,7 @@ Returns `{"status": "ok", "service": "research-agent"}`.
 
 ## Demo 4: Plan & Reflect Research Agent
 
-Single agent with structured Plan-and-Execute + Reflection patterns. Instead of "research this topic" as a single prompt, the agent first creates a research plan, executes it step-by-step with per-step evaluation, then self-critiques the result before finalizing.
+Three separate `query()` calls using the optimal model per phase. Planning and reflection use Haiku (10x cheaper), execution uses Sonnet (needs reasoning quality).
 
 **Inspired by:** Plan-and-Execute and Reflection patterns from the LangGraph ecosystem.
 
@@ -293,21 +293,28 @@ Single agent with structured Plan-and-Execute + Reflection patterns. Instead of 
 [CLI: topic string]
         |
         v
-+-- claude-agent-sdk (query) ----------------------------------+
-|                                                               |
-|  Model: claude-sonnet-4-6                                     |
-|  Tools: WebSearch, WebFetch                                   |
-|                                                               |
-|  PHASE 1 — PLAN                                               |
-|  ├── Analyze topic                                            |
-|  └── Create 3-5 research steps with specific questions        |
-|                                                               |
-|  PHASE 2 — EXECUTE                                            |
-|  ├── Step 1: Search → Evaluate → Record findings              |
-|  ├── Step 2: Search → Evaluate → Record findings              |
-|  ├── ...                                                      |
-|  └── Synthesize all findings into structured report           |
-|                                                               |
++-- Phase 1: query() — Haiku -------------------+
+|  Create 3-5 research steps with questions      |
++------------------------------------------------+
+        |  plan text
+        v
++-- Phase 2: query() — Sonnet ------------------+
+|  Tools: WebSearch, WebFetch                    |
+|                                                |
+|  EXECUTE                                       |
+|  ├── Step 1: Search → Evaluate → Record        |
+|  ├── Step 2: Search → Evaluate → Record        |
+|  ├── ...                                       |
+|  └── Synthesize all findings into report       |
++------------------------------------------------+
+        |  report text
+        v
++-- Phase 3: query() — Haiku -------------------+
+|  Self-critique: coverage, sources, gaps        |
+|  Output: Reflection Notes + Meta               |
++------------------------------------------------+
+        |
+        v
 |  PHASE 3 — REFLECT                                            |
 |  ├── Self-critique: coverage, source quality, contradictions  |
 |  ├── If "Needs Improvement": targeted follow-up (max 1 iter)  |
@@ -376,7 +383,17 @@ Unlike Demo 1 which outputs only the report, Demo 4 outputs a complete research 
 
 ### Verified Test Results
 
-All 5 test topics run on 2026-04-13:
+**v2 (multi-model: Haiku plan/reflect + Sonnet execute)** — 2026-04-14:
+
+| # | Topic | Words | Turns | Cost | Plan $ | Exec $ | Reflect $ | Correction |
+|---|-------|-------|-------|------|--------|--------|-----------|------------|
+| 1 | State of AI Coding Agents 2026 | 3,107 | 32 | $0.86 | $0.04 | $0.78 | $0.04 | Yes |
+| 2 | n8n vs Make.com vs Zapier 2026 | 2,956 | 26 | $0.65 | $0.01 | $0.61 | $0.03 | No |
+
+**Haiku cost for Plan+Reflect**: $0.04-0.08 per run (vs ~$0.15-0.20 with Sonnet for those phases).
+
+<details>
+<summary>v1 results (single Sonnet, 2026-04-13)</summary>
 
 | # | Topic | Words | Turns | Cost | Correction |
 |---|-------|-------|-------|------|------------|
@@ -386,18 +403,19 @@ All 5 test topics run on 2026-04-13:
 | 4 | Claude Managed Agents vs LangChain | 2,588 | 30 | $0.53 | No |
 | 5 | RAG Architekturen 2026 | 1,823 | 20 | $0.57 | No |
 
-**Average**: 2,214 words, 25 turns, $0.60 per run. 100% structure compliance (Plan + Report + Reflection + Meta present in all runs).
+</details>
 
 ### Key Differences from Demo 1
 
 | Aspect | Demo 1 (Basic) | Demo 4 (Plan + Reflect) |
 |--------|----------------|-------------------------|
 | Approach | "Research this topic" one-shot | Structured plan → sequential execution → self-critique |
+| Models | Sonnet only | Haiku (plan/reflect) + Sonnet (execute) |
 | Planning | Implicit (agent decides internally) | Explicit plan output before any research |
 | Evaluation | None — agent decides when done | Per-step sufficiency check during execution |
 | Self-critique | None | Reflection phase with optional correction |
 | Output | Report only | Plan + Report + Reflection + Meta |
-| Max turns | 30 | 40 |
+| query() calls | 1 | 3 (one per phase) |
 
 ---
 

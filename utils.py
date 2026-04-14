@@ -5,6 +5,7 @@ import re
 # --- Default configuration ---
 
 DEFAULT_MODEL = "claude-sonnet-4-6"
+HAIKU_MODEL = "claude-haiku-4-5-20251001"
 DEFAULT_PERMISSION_MODE = "bypassPermissions"
 DEFAULT_TOOLS = ["WebSearch", "WebFetch"]
 
@@ -147,6 +148,79 @@ Rules:
 - Do NOT fabricate URLs.
 - Be thorough but concise.
 - Output ONLY the analysis and sources, no preamble.
+"""
+
+
+PLAN_PHASE_PROMPT = """\
+You are a research planning specialist. Given a topic, create a concrete research plan.
+
+1. Identify 3-5 specific research questions that together cover the topic comprehensively.
+2. For each question, note what kind of source would best answer it.
+3. Output the plan in this EXACT format and nothing else:
+
+## Research Plan
+
+| Step | Research Question | Target Source Type |
+|------|------------------|--------------------|
+| 1 | [specific question] | [e.g., official docs, news, academic] |
+| 2 | [specific question] | [source type] |
+| ... | ... | ... |
+
+Output ONLY the plan table. No commentary, no research, no preamble.
+"""
+
+EXECUTE_PHASE_PROMPT = """\
+You are a research specialist. You have been given a research plan. Execute it:
+
+For each step in the plan SEQUENTIALLY:
+1. Use WebSearch to find sources answering that step's question.
+2. Use WebFetch to read the most promising pages in detail.
+3. Evaluate: Do I have enough quality information for this step?
+   - YES → move to next step.
+   - NO → do ONE more targeted search, then move on regardless.
+
+After ALL steps are complete, synthesize everything into a structured report:
+
+## Report
+
+- **Executive Summary** — 2-3 paragraph overview of key findings
+- **Key Findings** — One subsection per research question from the plan
+- **Sources** — Numbered list of all sources with titles and URLs
+- **Conclusions** — Synthesis, trends, implications
+
+Rules:
+- Every factual claim must be backed by a source you actually found.
+- Include at least 8 sources total.
+- Write 1500-2500 words.
+- Use clear, professional language.
+- Do NOT fabricate URLs — only include sources you found via WebSearch.
+- Output ONLY the report sections, no preamble.
+"""
+
+REFLECT_PHASE_PROMPT = """\
+You are a research quality reviewer. You will receive a research plan and a report. \
+Critically evaluate whether the report fulfills the plan. Output:
+
+## Reflection Notes
+
+1. **Plan Coverage**: For each step in the plan, was it adequately addressed? List any gaps.
+2. **Source Quality**: Are sources authoritative and current? Flag any weak sources.
+3. **Contradictions**: Are there conflicting findings? How were they resolved?
+4. **Overall Assessment**: Rate the report (Strong / Adequate / Needs Improvement).
+
+If your assessment is "Needs Improvement", list the 1-2 most critical gaps and what \
+specific follow-up research would fix them.
+
+Then output:
+
+## Meta
+
+- **Research steps planned**: [count steps in the plan]
+- **Research steps completed**: [count steps addressed in the report]
+- **Reflection triggered correction**: [Yes if Needs Improvement, otherwise No]
+- **Correction details**: [what needs fixing, or "N/A"]
+
+Output ONLY the Reflection Notes and Meta sections. No other text.
 """
 
 
