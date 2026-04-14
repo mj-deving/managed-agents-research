@@ -3,246 +3,108 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Managed Agents — Demo Comparison</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+<title>Managed Agents — Comparison Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --bg: #111;
-    --fg: #999;
-    --fg-bright: #ddd;
-    --fg-max: #fff;
-    --rule: #222;
-    --accent: #e4e400;
-    --mono: 'JetBrains Mono', monospace;
-    --sans: 'Space Grotesk', sans-serif;
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 15px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+body {
+  font-family: 'DM Sans', sans-serif; background-color: #f0f4f8;
+  background-image: repeating-linear-gradient(-45deg, transparent, transparent 40px, #cbd5e1 40px, #cbd5e1 41px);
+  color: #1e293b; line-height: 1.5; padding: 2rem 1rem 3rem;
+}
+.container { max-width: 980px; margin: 0 auto; }
+.mono, .header-meta, .section-label, .stat-value, .stat-label, .bar-section-title,
+.bar-label, .bar-val, .phase-text, .footer, th, td {
+  font-family: 'Fira Code', monospace;
+}
+.header {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  border-bottom: 2px solid #1e293b; padding-bottom: 1rem; margin-bottom: 2.5rem;
+}
+.header-title {
+  font-weight: 700; font-size: 2.4rem; letter-spacing: -0.02em; line-height: 1.1;
+}
+.header-meta { font-size: 0.72rem; color: #64748b; text-align: right; line-height: 1.7; }
+.section-label {
+  font-size: 0.68rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.12em; color: #64748b; border-left: 3px solid #0891b2;
+  padding-left: 0.6rem; margin-bottom: 0.75rem;
+}
+.stats-row {
+  display: flex; border-top: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1;
+  background: #fff; margin-bottom: 2.5rem;
+}
+.stat-item { flex: 1; padding: 0.85rem 0.6rem; text-align: center; border-right: 1px solid #cbd5e1; }
+.stat-item:last-child { border-right: none; }
+.stat-value { font-size: 1.15rem; font-weight: 600; }
+.stat-label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em; color: #64748b; margin-top: 0.15rem; }
+.table-wrap { background: #fff; border: 1px solid #cbd5e1; margin-bottom: 2.5rem; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+th {
+  font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+  color: #64748b; text-align: left; padding: 0.6rem 0.7rem;
+  border-bottom: 2px solid #1e293b; background: #f8fafc; white-space: nowrap;
+}
+td { padding: 0.55rem 0.7rem; border-bottom: 1px solid #e2e8f0; font-size: 0.78rem; white-space: nowrap; }
+tr:last-child td { border-bottom: none; }
+td.label-cell { font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 0.82rem; }
+td.dim { color: #64748b; }
+.hl { color: #0891b2; font-weight: 600; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2.5rem; }
+.bar-section { background: #fff; border: 1px solid #cbd5e1; padding: 1rem 1.2rem; }
+.bar-section-title {
+  font-size: 0.65rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.1em; color: #64748b; margin-bottom: 0.9rem;
+  border-bottom: 1px solid #e2e8f0; padding-bottom: 0.4rem;
+}
+.bar-row { display: flex; align-items: center; margin-bottom: 0.55rem; }
+.bar-row:last-child { margin-bottom: 0; }
+.bar-label { font-size: 0.72rem; color: #64748b; width: 52px; flex-shrink: 0; }
+.bar-track { flex: 1; height: 3px; background: #e2e8f0; position: relative; margin: 0 0.6rem; }
+.bar-fill { position: absolute; top: 0; left: 0; height: 3px; background: #cbd5e1; }
+.bar-fill.accent { background: #0891b2; }
+.bar-val { font-size: 0.72rem; width: 48px; text-align: right; flex-shrink: 0; }
+.bar-val.accent { color: #0891b2; font-weight: 600; }
+.phase-section { background: #fff; border: 1px solid #cbd5e1; padding: 1rem 1.2rem; margin-bottom: 2.5rem; }
+.phase-strip { display: flex; height: 4px; width: 100%; margin-bottom: 0.75rem; }
+.phase-plan { background: #0891b2; flex: 5; }
+.phase-execute { background: #1e293b; flex: 91; }
+.phase-reflect { background: #94a3b8; flex: 4; }
+.phase-labels { display: flex; justify-content: space-between; }
+.phase-label-item { display: flex; align-items: center; gap: 0.4rem; }
+.phase-swatch { width: 10px; height: 3px; display: inline-block; }
+.phase-swatch.plan { background: #0891b2; }
+.phase-swatch.execute { background: #1e293b; }
+.phase-swatch.reflect { background: #94a3b8; }
+.phase-text { font-size: 0.68rem; color: #64748b; }
+.phase-text strong { color: #1e293b; font-weight: 600; }
+.footer {
+  border-top: 2px solid #1e293b; padding-top: 0.75rem; margin-top: 1rem;
+  font-size: 0.65rem; color: #64748b;
+}
+@media (max-width: 640px) {
+  .header { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+  .header-meta { text-align: left; }
+  .header-title { font-size: 1.8rem; }
+  .stats-row { flex-direction: column; }
+  .stat-item {
+    border-right: none; border-bottom: 1px solid #cbd5e1; text-align: left;
+    padding: 0.6rem 0.8rem; display: flex; justify-content: space-between; align-items: center;
   }
-
-  html { font-size: 15px; }
-  body {
-    font-family: var(--sans);
-    background: var(--bg);
-    color: var(--fg);
-    -webkit-font-smoothing: antialiased;
-  }
-
-  .page { max-width: 980px; margin: 0 auto; padding: 0 1.5rem; }
-
-  /* --- HEADER: asymmetric --- */
-  header {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    align-items: end;
-    padding: 4rem 0 1.5rem;
-    border-bottom: 1px solid var(--rule);
-    gap: 2rem;
-  }
-  header h1 {
-    font-size: 3.2rem;
-    font-weight: 700;
-    letter-spacing: -0.05em;
-    line-height: 0.95;
-    color: var(--fg-max);
-  }
-  header h1 em {
-    font-style: normal;
-    color: var(--accent);
-  }
-  .header-meta {
-    text-align: right;
-    font-family: var(--mono);
-    font-size: 0.7rem;
-    line-height: 1.8;
-    color: var(--fg);
-  }
-
-  /* --- NUMBERS ROW --- */
-  .nums {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    border-bottom: 1px solid var(--rule);
-  }
-  .num {
-    padding: 1.2rem 0;
-    border-right: 1px solid var(--rule);
-  }
-  .num:last-child { border-right: none; }
-  .num-v {
-    font-family: var(--mono);
-    font-size: 1.6rem;
-    font-weight: 700;
-    color: var(--fg-max);
-  }
-  .num-v.a { color: var(--accent); }
-  .num-l {
-    font-family: var(--mono);
-    font-size: 0.6rem;
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-    color: var(--fg);
-    margin-top: 0.1rem;
-  }
-
-  /* --- SECTIONS --- */
-  section { border-bottom: 1px solid var(--rule); }
-  section:last-of-type { border-bottom: none; }
-  .sh {
-    font-family: var(--mono);
-    font-size: 0.6rem;
-    text-transform: uppercase;
-    letter-spacing: 0.18em;
-    color: var(--fg);
-    padding: 1.5rem 0 0.75rem;
-  }
-  .sh em {
-    font-style: normal;
-    color: var(--accent);
-  }
-
-  /* --- TABLE --- */
-  table { width: 100%; border-collapse: collapse; }
-  th, td { padding: 0.45rem 0; }
-  th {
-    font-family: var(--mono);
-    font-size: 0.55rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: var(--fg);
-    text-align: left;
-    border-bottom: 1px solid var(--rule);
-  }
-  td {
-    font-size: 0.85rem;
-    border-bottom: 1px solid var(--rule);
-    color: var(--fg-bright);
-  }
-  tr:last-child td { border-bottom: none; }
-  .ar { text-align: right; }
-  .mn { font-family: var(--mono); font-size: 0.8rem; }
-  .dm { font-weight: 700; color: var(--fg-max); font-size: 0.9rem; }
-  .lo { color: var(--accent); }
-
-  /* --- HORIZONTAL BARS --- */
-  .hb { padding: 0 0 1.5rem; }
-  .hb-row {
-    display: grid;
-    grid-template-columns: 24px 1fr 56px;
-    align-items: center;
-    gap: 0.5rem;
-    height: 1.6rem;
-  }
-  .hb-n {
-    font-family: var(--mono);
-    font-size: 0.7rem;
-    color: var(--fg);
-    text-align: right;
-  }
-  .hb-bar {
-    height: 3px;
-    background: var(--rule);
-    position: relative;
-  }
-  .hb-fill {
-    position: absolute;
-    left: 0; top: 0;
-    height: 100%;
-    background: var(--fg-bright);
-  }
-  .hb-fill.hi { background: var(--accent); }
-  .hb-v {
-    font-family: var(--mono);
-    font-size: 0.7rem;
-    color: var(--fg);
-    text-align: right;
-  }
-
-  /* --- TWO COL --- */
-  .split {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 3rem;
-    padding-bottom: 1.5rem;
-  }
-
-  /* --- PHASE --- */
-  .phase-row {
-    display: flex;
-    height: 4px;
-    margin-bottom: 0.5rem;
-  }
-  .phase-fill { height: 100%; }
-  .phase-legend {
-    font-family: var(--mono);
-    font-size: 0.6rem;
-    color: var(--fg);
-    display: flex;
-    gap: 1.5rem;
-  }
-  .phase-legend b {
-    font-weight: 500;
-    color: var(--fg-bright);
-  }
-
-  /* --- CODE BLOCKS --- */
-  .code-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1px;
-    background: var(--rule);
-    margin-bottom: 1px;
-  }
-  .code-block { background: var(--bg); }
-  .code-head {
-    padding: 0.4rem 0.6rem;
-    font-family: var(--mono);
-    font-size: 0.65rem;
-    font-weight: 700;
-    color: var(--fg-bright);
-    border-bottom: 1px solid var(--rule);
-    display: flex;
-    justify-content: space-between;
-  }
-  .code-head span {
-    font-weight: 500;
-    color: var(--fg);
-  }
-  .code-body {
-    padding: 0.5rem 0.6rem;
-    font-family: var(--mono);
-    font-size: 0.65rem;
-    line-height: 1.6;
-    color: var(--fg);
-    white-space: pre;
-    overflow-x: auto;
-  }
-
-  /* --- FOOTER --- */
-  footer {
-    padding: 1.5rem 0;
-    font-family: var(--mono);
-    font-size: 0.6rem;
-    color: var(--fg);
-    text-align: center;
-    letter-spacing: 0.05em;
-  }
-
-  @media (max-width: 640px) {
-    header { grid-template-columns: 1fr; }
-    header h1 { font-size: 2.2rem; }
-    .header-meta { text-align: left; }
-    .nums { grid-template-columns: repeat(3, 1fr); }
-    .num:nth-child(3) { border-right: none; }
-    .split, .code-grid { grid-template-columns: 1fr; }
-  }
+  .stat-item:last-child { border-bottom: none; }
+  .two-col { grid-template-columns: 1fr; gap: 1rem; }
+  table { font-size: 0.72rem; }
+  td, th { padding: 0.45rem 0.5rem; }
+  .phase-labels { flex-direction: column; gap: 0.3rem; }
+  .footer { flex-direction: column; gap: 0.25rem; }
+}
 </style>
 </head>
 <body>
-<div class="page">
-
-  <header>
-    <h1>Managed<br>Agents<em>.</em></h1>
+<div class="container">
+  <header class="header">
+    <div class="header-title">Managed Agents.</div>
     <div class="header-meta">
       claude-agent-sdk 0.1.58<br>
       sonnet 4.6 + haiku 4.5<br>
@@ -250,166 +112,87 @@
       verified 2026-04-14
     </div>
   </header>
-
-  <div class="nums">
-    <div class="num"><div class="num-v">5</div><div class="num-l">demos</div></div>
-    <div class="num"><div class="num-v a">$0.42</div><div class="num-l">cheapest</div></div>
-    <div class="num"><div class="num-v">$1.97</div><div class="num-l">most expensive</div></div>
-    <div class="num"><div class="num-v">2,253</div><div class="num-l">avg words</div></div>
-    <div class="num"><div class="num-v a">42</div><div class="num-l">tests</div></div>
+  <div class="stats-row">
+    <div class="stat-item"><div class="stat-value">5</div><div class="stat-label">Demos</div></div>
+    <div class="stat-item"><div class="stat-value">$0.42</div><div class="stat-label">Cheapest</div></div>
+    <div class="stat-item"><div class="stat-value">$1.97</div><div class="stat-label">Most Expensive</div></div>
+    <div class="stat-item"><div class="stat-value">2,253</div><div class="stat-label">Avg Words</div></div>
+    <div class="stat-item"><div class="stat-value">42</div><div class="stat-label">Tests</div></div>
   </div>
-
-  <section>
-    <div class="sh"><em>//</em> comparison</div>
+  <div class="section-label">Comparison</div>
+  <div class="table-wrap">
     <table>
       <thead>
-        <tr><th></th><th>pattern</th><th>model</th><th class="ar">words</th><th class="ar">turns</th><th class="ar">cost</th><th class="ar">time</th><th class="ar">src</th></tr>
+        <tr><th>Demo</th><th>Pattern</th><th>Model</th><th>Words</th><th>Turns</th><th>Cost</th><th>Time</th><th>Sources</th></tr>
       </thead>
       <tbody>
-        <tr><td class="dm">1</td><td>Single Agent</td><td class="mn">Sonnet</td><td class="ar mn">2,463</td><td class="ar mn">32</td><td class="ar mn">$0.81</td><td class="ar mn">3m</td><td class="ar mn">14</td></tr>
-        <tr><td class="dm">2</td><td>Multi-Agent</td><td class="mn">Sonnet</td><td class="ar mn">2,178</td><td class="ar mn">5a</td><td class="ar mn">$1.70</td><td class="ar mn">7m</td><td class="ar mn">&mdash;</td></tr>
-        <tr><td class="dm">3</td><td>HTTP API</td><td class="mn">Sonnet</td><td class="ar mn">1,956</td><td class="ar mn">18</td><td class="ar mn lo">$0.42</td><td class="ar mn">3m</td><td class="ar mn">16</td></tr>
-        <tr><td class="dm">4</td><td>Plan+Reflect</td><td class="mn">Haiku+Son</td><td class="ar mn">3,107</td><td class="ar mn">32</td><td class="ar mn">$0.86</td><td class="ar mn">3m</td><td class="ar mn">18</td></tr>
-        <tr><td class="dm">5</td><td>Multi+Plan</td><td class="mn">Sonnet</td><td class="ar mn">2,467</td><td class="ar mn">5a</td><td class="ar mn">$1.97</td><td class="ar mn">5m</td><td class="ar mn">&mdash;</td></tr>
+        <tr><td>1</td><td class="label-cell">Single Agent</td><td>Sonnet</td><td>2,463</td><td>32</td><td>$0.81</td><td class="dim">3m</td><td>14</td></tr>
+        <tr><td>2</td><td class="label-cell">Multi-Agent</td><td>Sonnet</td><td>2,178</td><td>5 agents</td><td>$1.70</td><td class="dim">7m</td><td class="dim">&mdash;</td></tr>
+        <tr><td>3</td><td class="label-cell">HTTP API</td><td>Sonnet</td><td>1,956</td><td>18</td><td class="hl">$0.42</td><td class="dim">3m</td><td>16</td></tr>
+        <tr><td>4</td><td class="label-cell">Plan+Reflect</td><td>Haiku+Sonnet</td><td class="hl">3,107</td><td>32</td><td>$0.86</td><td class="dim">3m</td><td>18</td></tr>
+        <tr><td>5</td><td class="label-cell">Multi+Plan</td><td>Sonnet</td><td>2,467</td><td>5 agents</td><td>$1.97</td><td class="dim">5m</td><td class="dim">&mdash;</td></tr>
       </tbody>
     </table>
-  </section>
-
-  <section>
-    <div class="split">
-      <div>
-        <div class="sh"><em>//</em> cost usd</div>
-        <div class="hb">
-          <div class="hb-row"><span class="hb-n">1</span><div class="hb-bar"><div class="hb-fill" style="width:41%"></div></div><span class="hb-v">0.81</span></div>
-          <div class="hb-row"><span class="hb-n">2</span><div class="hb-bar"><div class="hb-fill" style="width:86%"></div></div><span class="hb-v">1.70</span></div>
-          <div class="hb-row"><span class="hb-n">3</span><div class="hb-bar"><div class="hb-fill hi" style="width:21%"></div></div><span class="hb-v">0.42</span></div>
-          <div class="hb-row"><span class="hb-n">4</span><div class="hb-bar"><div class="hb-fill" style="width:44%"></div></div><span class="hb-v">0.86</span></div>
-          <div class="hb-row"><span class="hb-n">5</span><div class="hb-bar"><div class="hb-fill" style="width:100%"></div></div><span class="hb-v">1.97</span></div>
-        </div>
+  </div>
+  <div class="section-label">Distribution</div>
+  <div class="two-col">
+    <div class="bar-section">
+      <div class="bar-section-title">Cost per Demo</div>
+      <div class="bar-row"><span class="bar-label">D1</span><div class="bar-track"><div class="bar-fill" style="width:41.1%"></div></div><span class="bar-val">$0.81</span></div>
+      <div class="bar-row"><span class="bar-label">D2</span><div class="bar-track"><div class="bar-fill" style="width:86.3%"></div></div><span class="bar-val">$1.70</span></div>
+      <div class="bar-row"><span class="bar-label">D3</span><div class="bar-track"><div class="bar-fill accent" style="width:21.3%"></div></div><span class="bar-val accent">$0.42</span></div>
+      <div class="bar-row"><span class="bar-label">D4</span><div class="bar-track"><div class="bar-fill" style="width:43.7%"></div></div><span class="bar-val">$0.86</span></div>
+      <div class="bar-row"><span class="bar-label">D5</span><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><span class="bar-val">$1.97</span></div>
+    </div>
+    <div class="bar-section">
+      <div class="bar-section-title">Word Count</div>
+      <div class="bar-row"><span class="bar-label">D1</span><div class="bar-track"><div class="bar-fill" style="width:79.3%"></div></div><span class="bar-val">2,463</span></div>
+      <div class="bar-row"><span class="bar-label">D2</span><div class="bar-track"><div class="bar-fill" style="width:70.1%"></div></div><span class="bar-val">2,178</span></div>
+      <div class="bar-row"><span class="bar-label">D3</span><div class="bar-track"><div class="bar-fill" style="width:63.0%"></div></div><span class="bar-val">1,956</span></div>
+      <div class="bar-row"><span class="bar-label">D4</span><div class="bar-track"><div class="bar-fill accent" style="width:100%"></div></div><span class="bar-val accent">3,107</span></div>
+      <div class="bar-row"><span class="bar-label">D5</span><div class="bar-track"><div class="bar-fill" style="width:79.4%"></div></div><span class="bar-val">2,467</span></div>
+    </div>
+  </div>
+  <div class="section-label">Demo 4 Phase Breakdown</div>
+  <div class="phase-section">
+    <div class="phase-strip">
+      <div class="phase-plan"></div>
+      <div class="phase-execute"></div>
+      <div class="phase-reflect"></div>
+    </div>
+    <div class="phase-labels">
+      <div class="phase-label-item">
+        <span class="phase-swatch plan"></span>
+        <span class="phase-text"><strong>Plan</strong> Haiku $0.04 &middot; 5%</span>
       </div>
-      <div>
-        <div class="sh"><em>//</em> words</div>
-        <div class="hb">
-          <div class="hb-row"><span class="hb-n">1</span><div class="hb-bar"><div class="hb-fill" style="width:79%"></div></div><span class="hb-v">2,463</span></div>
-          <div class="hb-row"><span class="hb-n">2</span><div class="hb-bar"><div class="hb-fill" style="width:70%"></div></div><span class="hb-v">2,178</span></div>
-          <div class="hb-row"><span class="hb-n">3</span><div class="hb-bar"><div class="hb-fill" style="width:63%"></div></div><span class="hb-v">1,956</span></div>
-          <div class="hb-row"><span class="hb-n">4</span><div class="hb-bar"><div class="hb-fill hi" style="width:100%"></div></div><span class="hb-v">3,107</span></div>
-          <div class="hb-row"><span class="hb-n">5</span><div class="hb-bar"><div class="hb-fill" style="width:79%"></div></div><span class="hb-v">2,467</span></div>
-        </div>
+      <div class="phase-label-item">
+        <span class="phase-swatch execute"></span>
+        <span class="phase-text"><strong>Execute</strong> Sonnet $0.78 &middot; 91%</span>
+      </div>
+      <div class="phase-label-item">
+        <span class="phase-swatch reflect"></span>
+        <span class="phase-text"><strong>Reflect</strong> Haiku $0.04 &middot; 4%</span>
       </div>
     </div>
-  </section>
-
-  <section>
-    <div class="sh"><em>//</em> demo 4 phase cost</div>
-    <div class="phase-row">
-      <div class="phase-fill" style="width:5%;background:var(--accent)"></div>
-      <div class="phase-fill" style="width:91%;background:var(--fg-bright)"></div>
-      <div class="phase-fill" style="width:4%;background:var(--accent)"></div>
-    </div>
-    <div class="phase-legend">
-      <span><b>Plan</b> Haiku $0.04</span>
-      <span><b>Execute</b> Sonnet $0.78</span>
-      <span><b>Reflect</b> Haiku $0.04</span>
-    </div>
-    <div style="height:1rem"></div>
-  </section>
-
-  <section>
-    <div class="split">
-      <div>
-        <div class="sh"><em>//</em> demo 2 tokens <span style="font-weight:400">65k total</span></div>
-        <div class="hb">
-          <div class="hb-row"><span class="hb-n">a1</span><div class="hb-bar"><div class="hb-fill" style="width:100%"></div></div><span class="hb-v">22,081</span></div>
-          <div class="hb-row"><span class="hb-n">a2</span><div class="hb-bar"><div class="hb-fill" style="width:55%"></div></div><span class="hb-v">12,076</span></div>
-          <div class="hb-row"><span class="hb-n">a3</span><div class="hb-bar"><div class="hb-fill" style="width:54%"></div></div><span class="hb-v">11,811</span></div>
-          <div class="hb-row"><span class="hb-n">a4</span><div class="hb-bar"><div class="hb-fill" style="width:52%"></div></div><span class="hb-v">11,440</span></div>
-          <div class="hb-row"><span class="hb-n">a5</span><div class="hb-bar"><div class="hb-fill" style="width:34%"></div></div><span class="hb-v">7,429</span></div>
-        </div>
-      </div>
-      <div>
-        <div class="sh"><em>//</em> demo 5 tokens <span style="font-weight:400">53k total</span></div>
-        <div class="hb">
-          <div class="hb-row"><span class="hb-n">a1</span><div class="hb-bar"><div class="hb-fill" style="width:100%"></div></div><span class="hb-v">12,312</span></div>
-          <div class="hb-row"><span class="hb-n">a2</span><div class="hb-bar"><div class="hb-fill" style="width:96%"></div></div><span class="hb-v">11,867</span></div>
-          <div class="hb-row"><span class="hb-n">a3</span><div class="hb-bar"><div class="hb-fill" style="width:83%"></div></div><span class="hb-v">10,261</span></div>
-          <div class="hb-row"><span class="hb-n">a4</span><div class="hb-bar"><div class="hb-fill" style="width:80%"></div></div><span class="hb-v">9,904</span></div>
-          <div class="hb-row"><span class="hb-n">a5</span><div class="hb-bar"><div class="hb-fill" style="width:70%"></div></div><span class="hb-v">8,631</span></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section>
-    <div class="sh"><em>//</em> output samples</div>
-    <div class="code-grid">
-      <div class="code-block">
-        <div class="code-head">demo 1 <span>query() one-shot</span></div>
-        <div class="code-body"># State of AI Coding Agents 2026
-
-## Executive Summary
-The AI coding agent landscape
-represents a significant shift...
-
-## Key Findings
-Copilot: 20M+ users
-Cursor: $500M+ ARR
-Claude Code: architectural tasks
-
-## Sources [14 verified]</div>
-      </div>
-      <div class="code-block">
-        <div class="code-head">demo 4 <span>haiku plan + sonnet exec</span></div>
-        <div class="code-body">## Research Plan
-1. Leading agents?
-2. Code gen quality?
-3. Enterprise adoption?
-
-## Report [3,107 words]
-## Reflection Notes
-  Assessment: Needs Improvement
-## Meta
-  Correction: Yes</div>
-      </div>
-      <div class="code-block">
-        <div class="code-head">demo 2 <span>5 parallel agents</span></div>
-        <div class="code-body">[orchestrator] decompose topic
-[+] agent 1: architecture
-[+] agent 2: features
-[+] agent 3: dx comparison
-[+] agent 4: performance
-[+] agent 5: adoption
-[done] 65k tokens
-[stitch] unified report</div>
-      </div>
-      <div class="code-block">
-        <div class="code-head">demo 3 <span>http api</span></div>
-        <div class="code-body">POST /research
-{"topic":"...","mode":"basic"}
-
-200 OK
-{ words: 1956,
-  cost_usd: 0.415,
-  elapsed: 164.5 }</div>
-      </div>
-    </div>
-  </section>
-
-  <section>
-    <div class="sh"><em>//</em> sdk patterns</div>
+  </div>
+  <div class="section-label">SDK Patterns</div>
+  <div class="table-wrap">
     <table>
-      <thead><tr><th>api</th><th>type</th><th>demos</th><th>note</th></tr></thead>
+      <thead>
+        <tr><th>Pattern</th><th>Mode</th><th>Demos</th><th>Notes</th></tr>
+      </thead>
       <tbody>
-        <tr><td class="mn" style="color:var(--accent)">query()</td><td>one-shot</td><td class="mn">1, 3, 4</td><td>single agent, async gen</td></tr>
-        <tr><td class="mn" style="color:var(--accent)">ClaudeSDKClient</td><td>streaming</td><td class="mn">2, 5</td><td>multi-agent orchestration</td></tr>
-        <tr><td class="mn" style="color:var(--accent)">AgentDefinition</td><td>sub-agents</td><td class="mn">2, 5</td><td>parallel researchers</td></tr>
-        <tr><td class="mn" style="color:var(--accent)">3x query()</td><td>multi-model</td><td class="mn">4</td><td>haiku plan/reflect, sonnet exec</td></tr>
-        <tr><td class="mn" style="color:var(--accent)">Starlette</td><td>http</td><td class="mn">3</td><td>rest api + mode param</td></tr>
+        <tr><td>query()</td><td class="dim">one-shot</td><td>1, 3, 4</td><td class="label-cell">single agent, async gen</td></tr>
+        <tr><td>ClaudeSDKClient</td><td class="dim">streaming</td><td>2, 5</td><td class="label-cell">multi-agent orchestration</td></tr>
+        <tr><td>AgentDefinition</td><td class="dim">sub-agents</td><td>2, 5</td><td class="label-cell">parallel researchers</td></tr>
+        <tr><td>3x query()</td><td class="dim">multi-model</td><td>4</td><td class="label-cell">haiku plan/reflect, sonnet exec</td></tr>
+        <tr><td>Starlette</td><td class="dim">http</td><td>3</td><td class="label-cell">rest api + mode param</td></tr>
       </tbody>
     </table>
-  </section>
-
+  </div>
+  <footer class="footer">
+    <span>managed-agents // claude-agent-sdk // verified 2026-04-10 &mdash; 2026-04-14</span>
+  </footer>
 </div>
-<footer>managed-agents // claude-agent-sdk // verified 2026-04-10 — 2026-04-14</footer>
 </body>
 </html>
