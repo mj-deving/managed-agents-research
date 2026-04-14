@@ -2,3 +2,4 @@ claude-agent-sdk>=0.1.58
 anthropic>=0.93.0
 starlette>=1.0.0
 uvicorn>=0.44.0
+pytest>=9.0.0

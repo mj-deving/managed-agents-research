@@ -35,6 +35,20 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+## Testing
+
+Unit tests for shared utilities, system prompt structure, and output parsing. All tests run locally without API calls.
+
+```bash
+source venv/bin/activate
+pytest tests/ -v
+```
+
+42 tests covering:
+- `test_utils.py` — slugify, strip_preamble, check_report_structure, config constants
+- `test_prompts.py` — validates BASIC/PLAN_REFLECT/RESEARCHER prompt structure
+- `test_output_parsing.py` — report section detection, meta-info parsing, source URL extraction
+
 ---
 
 ## Demo 1: Simple Research Agent
