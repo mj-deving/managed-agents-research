@@ -6,6 +6,11 @@ services:
     environment:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
   n8n:
     image: n8nio/n8n:latest
@@ -17,7 +22,8 @@ services:
       - N8N_HOST=0.0.0.0
       - WEBHOOK_URL=http://localhost:5678
     depends_on:
-      - agent
+      agent:
+        condition: service_healthy
     profiles:
       - with-n8n
 

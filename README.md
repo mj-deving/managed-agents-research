@@ -560,23 +560,35 @@ All costs from actual test runs:
 
 ## Docker
 
-Run the HTTP API server (Demo 3) in a container:
+Run the HTTP API server (Demo 3) in a container. The image includes Node.js + Claude CLI (`@anthropic-ai/claude-code`) since `claude-agent-sdk` requires it at runtime.
+
+**Prerequisites:** Set your `ANTHROPIC_API_KEY` in a `.env` file or environment:
 
 ```bash
+echo "ANTHROPIC_API_KEY=sk-ant-..." > .env
+```
+
+```bash
+# Build
+docker compose build
+
 # Agent server only
 docker compose up agent
 
-# Agent server + n8n
+# Agent server + n8n (n8n waits for agent healthcheck)
 docker compose --profile with-n8n up
-```
 
-The agent service builds from the included `Dockerfile` (Python 3.12-slim) and exposes port 8000. Set `ANTHROPIC_API_KEY` in your environment or `.env` file.
-
-```bash
-# Build and test
-docker compose build
+# Test
 curl http://localhost:8000/health
+curl -X POST http://localhost:8000/research \
+     -H "Content-Type: application/json" \
+     -d '{"topic": "AI Coding Agents 2026"}'
 ```
+
+| Service | Port | Notes |
+|---------|------|-------|
+| `agent` | 8000 | Always runs, healthcheck on `/health` |
+| `n8n` | 5678 | Optional (`--profile with-n8n`), starts after agent is healthy |
 
 ## Project Structure
 
