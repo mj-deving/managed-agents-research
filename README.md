@@ -60,6 +60,10 @@ cd static && python3 -m http.server 8080
 
 Or open `static/comparison.html` directly in a browser.
 
+![Dashboard Overview](static/screenshots/dashboard-overview.png)
+
+![Dashboard Full](static/screenshots/dashboard-full.png)
+
 ---
 
 ## Demo 1: Simple Research Agent
