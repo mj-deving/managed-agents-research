@@ -7,6 +7,8 @@
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](#docker)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+![Claude_SDK](https://img.shields.io/badge/-Claude_SDK-D4A574?style=flat-square) ![Python](https://img.shields.io/badge/-Python-3776AB?style=flat-square) ![Docker](https://img.shields.io/badge/-Docker-2496ED?style=flat-square)
+
 **Autonomous research agents that plan, execute, and self-critique.** Five demos showing progressively more sophisticated agent patterns with the [Claude Agent SDK](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/sdk-overview) — from single-agent one-shot to multi-agent orchestration with plan-and-execute + reflection. Reports average 2,253 words with 8-18 verified sources, costs $0.42-$1.97 per run.
 
 ## Table of Contents
